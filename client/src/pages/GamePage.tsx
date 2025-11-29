@@ -14,7 +14,8 @@ import {
   Users
 } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// Use VITE_API_URL if set, otherwise empty string (same origin)
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 export function GamePage() {
   const { 

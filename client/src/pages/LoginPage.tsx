@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import { Rocket, User, Mail, Lock, AlertCircle } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// Use VITE_API_URL if set, otherwise empty string (same origin)
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 export function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
