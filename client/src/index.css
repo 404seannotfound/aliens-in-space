@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  body {
+    @apply bg-space-900 text-white font-sans antialiased;
+  }
+  
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-space-800;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-space-500 rounded-full;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  }
+  
+  .btn-primary {
+    @apply bg-alien-purple hover:bg-alien-purple/80 text-white;
+  }
+  
+  .btn-secondary {
+    @apply bg-space-600 hover:bg-space-500 text-white;
+  }
+  
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-500 text-white;
+  }
+  
+  .card {
+    @apply bg-space-800/80 backdrop-blur-sm rounded-xl border border-space-600/50 p-4;
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 bg-space-700 border border-space-500 rounded-lg
+           text-white placeholder-gray-400 focus:outline-none focus:border-alien-purple
+           transition-colors;
+  }
+  
+  .glow {
+    @apply shadow-lg shadow-alien-purple/20;
+  }
+  
+  .glow-green {
+    @apply shadow-lg shadow-alien-green/30;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-alien-purple via-alien-pink to-alien-blue bg-clip-text text-transparent;
+  }
+}
