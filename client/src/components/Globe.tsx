@@ -180,9 +180,15 @@ function CellDots() {
       ref={meshRef}
       args={[undefined, undefined, cells.length]}
       onClick={handleClick}
+      frustumCulled={false}
     >
       <sphereGeometry args={[1, 8, 8]} />
-      <meshBasicMaterial transparent opacity={0.7} />
+      <meshBasicMaterial 
+        transparent 
+        opacity={0.7}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
     </instancedMesh>
   )
 }
