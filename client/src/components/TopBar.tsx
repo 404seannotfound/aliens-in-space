@@ -1,6 +1,9 @@
 import { useStore } from '../store/useStore'
 import { LogOut, Calendar, Zap, Award } from 'lucide-react'
 
+// @ts-ignore - importing JSON
+import packageJson from '../../package.json'
+
 export function TopBar() {
   const { user, worldState, logout } = useStore()
 
@@ -17,7 +20,7 @@ export function TopBar() {
             <span className="text-2xl">👽</span>
             <div className="flex flex-col">
               <span className="font-bold text-white">Aliens in Space</span>
-              <span className="text-xs text-gray-400">v0.4.0</span>
+              <span className="text-xs text-gray-400">v{packageJson.version}</span>
             </div>
           </div>
           
