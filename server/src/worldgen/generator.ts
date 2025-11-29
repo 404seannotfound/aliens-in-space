@@ -190,8 +190,8 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
     
     // Create civilization
     const civResult = await db.query(`
-      INSERT INTO civilizations (world_id, name, color, ideology, tech_level)
-      VALUES ($1, $2, $3, 'balanced', 0)
+      INSERT INTO civilizations (world_id, name, color, tech_level)
+      VALUES ($1, $2, $3, 0)
       RETURNING id
     `, [worldId, civNames[i], civColors[i]]);
     
