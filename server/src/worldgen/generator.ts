@@ -199,13 +199,14 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
     const civId = civResult.rows[0].id;
     const popSize = 100 + Math.floor(Math.random() * 200);
     
-    // Create initial population
+    // Create initial population with all required fields
     await db.query(`
       INSERT INTO populations (
         cell_id, civilization_id, population_size, 
-        tech_level, prosperity, stability
+        tech_level, prosperity, stability,
+        birth_rate, death_rate, education, ideology_collectivism
       )
-      VALUES ($1, $2, $3, 0, 50, 50)
+      VALUES ($1, $2, $3, 0, 50, 50, 0.02, 0.01, 10, 50)
     `, [cell.id, civId, popSize]);
     
     debugLog(`  ✓ ${civNames[i]} (${popSize} people) at cell ${cell.id} (${cell.biome}, ${cell.temperature}°C)`, 'success');
