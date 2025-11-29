@@ -179,17 +179,17 @@ function Planet() {
     if (cells.length === 0) return { biomeTexture: null, displacementMap: null }
 
     const canvas = document.createElement('canvas')
-    const size = 1024
+    const size = 512  // Reduced from 1024 for faster rendering
     canvas.width = size
     canvas.height = size
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { willReadFrequently: false })
     if (!ctx) return { biomeTexture: null, displacementMap: null }
 
     // Create displacement canvas
     const dispCanvas = document.createElement('canvas')
     dispCanvas.width = size
     dispCanvas.height = size
-    const dispCtx = dispCanvas.getContext('2d')
+    const dispCtx = dispCanvas.getContext('2d', { willReadFrequently: false })
     if (!dispCtx) return { biomeTexture: null, displacementMap: null }
 
     // Fill with deep ocean
@@ -292,7 +292,7 @@ function Planet() {
     <>
       {/* Wireframe base - always visible */}
       <mesh ref={wireframeRef}>
-        <sphereGeometry args={[2, 32, 32]} />
+        <sphereGeometry args={[2, 24, 24]} />
         <meshBasicMaterial
           color="#1a1a3a"
           wireframe={!biomeTexture}
@@ -303,7 +303,7 @@ function Planet() {
       
       {/* Textured planet - loads after cells are ready */}
       <mesh ref={meshRef}>
-        <sphereGeometry args={[2, 128, 128]} />
+        <sphereGeometry args={[2, 64, 64]} />
         <meshStandardMaterial
           map={biomeTexture}
           displacementMap={displacementMap}
@@ -352,7 +352,7 @@ function Atmosphere() {
     <>
       {/* Multiple cloud layers at different heights */}
       <mesh ref={cloudRef}>
-        <sphereGeometry args={[2.25, 64, 64]} />
+        <sphereGeometry args={[2.25, 32, 32]} />
         <meshBasicMaterial
           color={cloudColor}
           transparent
@@ -362,7 +362,7 @@ function Atmosphere() {
       </mesh>
       
       <mesh rotation={[0, Math.PI / 3, 0]}>
-        <sphereGeometry args={[2.3, 64, 64]} />
+        <sphereGeometry args={[2.3, 32, 32]} />
         <meshBasicMaterial
           color={lighterCloud}
           transparent
@@ -372,7 +372,7 @@ function Atmosphere() {
       </mesh>
       
       <mesh rotation={[0, Math.PI / 1.5, 0]}>
-        <sphereGeometry args={[2.35, 64, 64]} />
+        <sphereGeometry args={[2.35, 32, 32]} />
         <meshBasicMaterial
           color={darkerCloud}
           transparent
