@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import * as THREE from 'three'
@@ -320,6 +320,21 @@ function Planet() {
 
 function Atmosphere() {
   const cloudRef = useRef<THREE.Mesh>(null)
+  const [cloudColor, setCloudColor] = useState('#87ceeb')
+  
+  useEffect(() => {
+    // Load cloud color from localStorage
+    const saved = localStorage.getItem('cloudColor')
+    if (saved) setCloudColor(saved)
+    
+    // Listen for changes
+    const handleStorage = () => {
+      const newColor = localStorage.getItem('cloudColor')
+      if (newColor) setCloudColor(newColor)
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
   
   useFrame((_, delta) => {
     if (cloudRef.current) {
@@ -328,13 +343,17 @@ function Atmosphere() {
     }
   })
 
+  // Lighten and darken the base color for variety
+  const lighterCloud = new THREE.Color(cloudColor).offsetHSL(0, 0, 0.1).getHexString()
+  const darkerCloud = new THREE.Color(cloudColor).offsetHSL(0, 0, -0.1).getHexString()
+
   return (
     <>
       {/* Multiple cloud layers at different heights */}
       <mesh ref={cloudRef}>
         <sphereGeometry args={[2.25, 64, 64]} />
         <meshBasicMaterial
-          color="#87ceeb"
+          color={cloudColor}
           transparent
           opacity={0.15}
           side={THREE.DoubleSide}
@@ -344,7 +363,7 @@ function Atmosphere() {
       <mesh rotation={[0, Math.PI / 3, 0]}>
         <sphereGeometry args={[2.3, 64, 64]} />
         <meshBasicMaterial
-          color="#b0d4f1"
+          color={`#${lighterCloud}`}
           transparent
           opacity={0.1}
           side={THREE.DoubleSide}
@@ -354,7 +373,7 @@ function Atmosphere() {
       <mesh rotation={[0, Math.PI / 1.5, 0]}>
         <sphereGeometry args={[2.35, 64, 64]} />
         <meshBasicMaterial
-          color="#6bb6ff"
+          color={`#${darkerCloud}`}
           transparent
           opacity={0.08}
           side={THREE.DoubleSide}

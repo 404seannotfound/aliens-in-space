@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/connection.js';
 import { v4 as uuidv4 } from 'uuid';
+import { generateWorld, WorldGenParams } from '../worldgen/generator.js';
 
 export const adminRouter = Router();
 
@@ -459,5 +460,49 @@ adminRouter.post('/seed', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Seed error:', error);
     res.status(500).json({ success: false, error: 'Seeding failed', details: String(error) });
+  }
+});
+
+// Generate new world with parameters
+adminRouter.post('/generate-world', async (req: Request, res: Response) => {
+  try {
+    const params: WorldGenParams = {
+      continents: req.body.continents || 4,
+      waterCoverage: req.body.waterCoverage || 0.7,
+      avgTemperature: req.body.avgTemperature || 15,
+      biomeVariety: req.body.biomeVariety || 1.0,
+      seed: req.body.seed
+    };
+
+    // Get or create world
+    let worldResult = await db.query("SELECT id FROM worlds WHERE status = 'running' LIMIT 1");
+    let worldId: string;
+
+    if (worldResult.rows.length === 0) {
+      const newWorld = await db.query(`
+        INSERT INTO worlds (name, seed, current_tick, current_year, status)
+        VALUES ($1, $2, 0, 0, 'running')
+        RETURNING id
+      `, ['Procedural World', params.seed || Math.floor(Math.random() * 1000000)]);
+      worldId = newWorld.rows[0].id;
+    } else {
+      worldId = worldResult.rows[0].id;
+      // Reset world
+      await db.query('UPDATE worlds SET current_tick = 0, current_year = 0 WHERE id = $1', [worldId]);
+      await db.query('DELETE FROM populations WHERE cell_id IN (SELECT id FROM cells WHERE world_id = $1)', [worldId]);
+    }
+
+    // Generate world
+    const result = await generateWorld(params, worldId);
+
+    res.json({
+      success: true,
+      message: 'World generated successfully',
+      worldId,
+      stats: result
+    });
+  } catch (error) {
+    console.error('World generation error:', error);
+    res.status(500).json({ success: false, error: 'World generation failed', details: String(error) });
   }
 });

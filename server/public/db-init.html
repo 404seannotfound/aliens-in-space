@@ -133,6 +133,75 @@
           </button>
         </div>
 
+        <!-- Generate World -->
+        <div class="p-4 bg-space-700 rounded-lg border border-alien-purple/30">
+          <div class="mb-4">
+            <h3 class="font-medium text-alien-purple">🌍 Generate New World</h3>
+            <p class="text-sm text-gray-400">Create a procedurally generated world with custom parameters</p>
+          </div>
+          
+          <div class="space-y-3 mb-4">
+            <!-- Continents -->
+            <div>
+              <label class="flex justify-between text-sm mb-1">
+                <span class="text-gray-300">Continents</span>
+                <span class="text-alien-purple" id="continents-value">4</span>
+              </label>
+              <input type="range" id="continents" min="1" max="7" value="4" 
+                     oninput="document.getElementById('continents-value').textContent = this.value"
+                     class="w-full h-2 bg-space-600 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <!-- Water Coverage -->
+            <div>
+              <label class="flex justify-between text-sm mb-1">
+                <span class="text-gray-300">Water Coverage</span>
+                <span class="text-alien-purple" id="water-value">70%</span>
+              </label>
+              <input type="range" id="water" min="30" max="90" value="70" 
+                     oninput="document.getElementById('water-value').textContent = this.value + '%'"
+                     class="w-full h-2 bg-space-600 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <!-- Temperature -->
+            <div>
+              <label class="flex justify-between text-sm mb-1">
+                <span class="text-gray-300">Avg Temperature</span>
+                <span class="text-alien-purple" id="temp-value">15°C</span>
+              </label>
+              <input type="range" id="temperature" min="-20" max="40" value="15" 
+                     oninput="document.getElementById('temp-value').textContent = this.value + '°C'"
+                     class="w-full h-2 bg-space-600 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <!-- Biome Variety -->
+            <div>
+              <label class="flex justify-between text-sm mb-1">
+                <span class="text-gray-300">Biome Variety</span>
+                <span class="text-alien-purple" id="biome-value">1.0x</span>
+              </label>
+              <input type="range" id="biome-variety" min="50" max="150" value="100" 
+                     oninput="document.getElementById('biome-value').textContent = (this.value / 100).toFixed(1) + 'x'"
+                     class="w-full h-2 bg-space-600 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <!-- Cloud Color -->
+            <div>
+              <label class="flex justify-between text-sm mb-1">
+                <span class="text-gray-300">Cloud Color</span>
+                <span class="text-alien-purple" id="cloud-color-value">#87ceeb</span>
+              </label>
+              <input type="color" id="cloud-color" value="#87ceeb" 
+                     oninput="document.getElementById('cloud-color-value').textContent = this.value"
+                     class="w-full h-8 bg-space-600 rounded-lg cursor-pointer">
+            </div>
+          </div>
+          
+          <button onclick="generateWorld()" id="btn-generate" class="btn bg-alien-purple hover:bg-purple-600 px-4 py-2 rounded-lg font-medium w-full">
+            🌍 Generate World
+          </button>
+        </div>
+
         <!-- Reset World -->
         <div class="flex items-center justify-between p-4 bg-space-700 rounded-lg border border-orange-500/30">
           <div>
@@ -325,6 +394,47 @@
       }
       
       setButtonLoading('btn-seed', false);
+      loadMetrics();
+    }
+
+    async function generateWorld() {
+      if (!confirm('🌍 Generate a new procedural world? This will replace all existing cells and populations.')) return;
+      
+      setButtonLoading('btn-generate', true);
+      log('Generating procedural world...', 'info');
+      
+      const params = {
+        continents: parseInt(document.getElementById('continents').value),
+        waterCoverage: parseInt(document.getElementById('water').value) / 100,
+        avgTemperature: parseInt(document.getElementById('temperature').value),
+        biomeVariety: parseInt(document.getElementById('biome-variety').value) / 100
+      };
+      
+      // Save cloud color to localStorage
+      const cloudColor = document.getElementById('cloud-color').value;
+      localStorage.setItem('cloudColor', cloudColor);
+      
+      log(`Parameters: ${params.continents} continents, ${(params.waterCoverage * 100).toFixed(0)}% water, ${params.avgTemperature}°C avg temp`, 'info');
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/generate-world`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          log(`✅ World generated! ${data.stats.cellCount} cells created`, 'success');
+          log(`Biomes: ${Object.entries(data.stats.biomeDistribution).map(([k,v]) => `${k}=${v}`).join(', ')}`, 'info');
+        } else {
+          log(`❌ Generation failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        log(`❌ Generation error: ${err.message}`, 'error');
+      }
+      
+      setButtonLoading('btn-generate', false);
       loadMetrics();
     }
 
