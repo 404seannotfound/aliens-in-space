@@ -9,20 +9,39 @@ const BIOME_COLORS: Record<string, string> = {
   desert: '#d4a84b',
   forest: '#2d5a27',
   grassland: '#7cb342',
-  tundra: '#b0bec5',
+  tundra: '#b8c5d6',
   wetland: '#4a7c59',
-  mountain: '#757575',
-  jungle: '#1b5e20'
+  mountain: '#8b7355',
+  jungle: '#1a4d2e',
+  arctic: '#e8f4f8',
+  alpine: '#9fa8a3',
+  river: '#4a90e2'
 }
 
-function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector3 {
+const BIOME_ELEVATION: Record<string, number> = {
+  ocean: -0.05,        // Below sea level
+  river: -0.02,        // Slightly below
+  wetland: 0.0,        // Sea level
+  grassland: 0.02,     // Low elevation
+  desert: 0.03,        // Low-mid elevation
+  jungle: 0.02,        // Low elevation
+  forest: 0.04,        // Mid elevation
+  tundra: 0.05,        // Mid-high elevation
+  alpine: 0.08,        // High elevation
+  mountain: 0.12,      // Very high elevation
+  arctic: 0.01         // Low (ice sheets)
+}
+
+function latLonToVector3(lat: number, lon: number, radius: number, biome?: string): THREE.Vector3 {
   const phi = (90 - lat) * (Math.PI / 180)
   const theta = (lon + 180) * (Math.PI / 180)
+  const elevation = biome ? (BIOME_ELEVATION[biome] || 0) : 0
+  const adjustedRadius = radius + elevation
   
   return new THREE.Vector3(
-    -radius * Math.sin(phi) * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta)
+    -adjustedRadius * Math.sin(phi) * Math.cos(theta),
+    adjustedRadius * Math.cos(phi),
+    adjustedRadius * Math.sin(phi) * Math.sin(theta)
   )
 }
 
@@ -46,7 +65,7 @@ function CellDots() {
     const populationMap = new Map(populations.map(p => [p.cell_id, p]))
 
     cells.forEach(cell => {
-      const pos = latLonToVector3(cell.lat, cell.lon, 2.02)
+      const pos = latLonToVector3(cell.lat, cell.lon, 2.02, cell.biome)
       positions.push(pos)
 
       const pop = populationMap.get(cell.id)
@@ -240,16 +259,11 @@ function Planet() {
           imageData.data[idx + 2] = rgb & 255
           imageData.data[idx + 3] = 255
 
-          // Height based on biome
-          let height = 100
-          if (nearestCell.biome === 'mountain') height = 220
-          else if (nearestCell.biome === 'grassland') height = 110
-          else if (nearestCell.biome === 'forest') height = 120
-          else if (nearestCell.biome === 'jungle') height = 115
-          else if (nearestCell.biome === 'desert') height = 105
-          else if (nearestCell.biome === 'tundra') height = 95
-          else if (nearestCell.biome === 'wetland') height = 85
-          else if (nearestCell.biome === 'ocean') height = 40
+          // Height based on biome elevation mapping
+          const elevation = BIOME_ELEVATION[nearestCell.biome] || 0
+          // Map elevation (-0.05 to 0.12) to displacement map values (0-255)
+          // Base at 128, scale elevation by 800 to get good visual range
+          const height = Math.max(0, Math.min(255, 128 + elevation * 800))
           
           dispImageData.data[idx] = height
           dispImageData.data[idx + 1] = height
