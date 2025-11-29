@@ -8,6 +8,9 @@ import { authRouter } from './routes/auth.js';
 import { worldRouter } from './routes/world.js';
 import { experimentRouter } from './routes/experiments.js';
 import { chatRouter } from './routes/chat.js';
+import { adminRouter } from './routes/admin.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { setupSocketHandlers } from './sockets/index.js';
 import { SimulationEngine } from './simulation/engine.js';
 import { authenticateToken } from './middleware/auth.js';
@@ -36,11 +39,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Static files for admin page
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/world', authenticateToken, worldRouter);
 app.use('/api/experiments', authenticateToken, experimentRouter);
 app.use('/api/chat', authenticateToken, chatRouter);
+app.use('/api/admin', adminRouter); // No auth for db init page
 
 // Socket.io setup
 setupSocketHandlers(io);

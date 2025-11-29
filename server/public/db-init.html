@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👽 Database Admin - Aliens in Space</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            space: { 900: '#0a0a1a', 800: '#0f0f2a', 700: '#1a1a3a', 600: '#252550' },
+            alien: { green: '#4ade80', purple: '#a855f7', blue: '#3b82f6', yellow: '#facc15', red: '#ef4444' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .card { background: rgba(15, 15, 42, 0.9); border: 1px solid rgba(37, 37, 80, 0.5); }
+    .btn { transition: all 0.2s; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px currentColor; } 50% { box-shadow: 0 0 20px currentColor; } }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; animation: pulse-glow 2s infinite; }
+  </style>
+</head>
+<body class="bg-space-900 text-white min-h-screen p-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-2">👽 Database Admin</h1>
+      <p class="text-gray-400">Aliens in Space - Database Initialization & Management</p>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="card rounded-xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">🔌 Connection Status</h2>
+        <div class="flex items-center gap-2">
+          <div id="status-dot" class="status-dot bg-gray-500"></div>
+          <span id="status-text" class="text-sm">Checking...</span>
+        </div>
+      </div>
+      <div id="connection-info" class="text-sm text-gray-400">Loading...</div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="card rounded-xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">📊 Database Metrics</h2>
+        <button onclick="loadMetrics()" class="btn bg-space-600 hover:bg-space-700 px-3 py-1 rounded text-sm">
+          🔄 Refresh
+        </button>
+      </div>
+      <div id="metrics-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-alien-purple" id="metric-players">-</div>
+          <div class="text-xs text-gray-400">Players</div>
+        </div>
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-alien-blue" id="metric-cells">-</div>
+          <div class="text-xs text-gray-400">Cells</div>
+        </div>
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-alien-green" id="metric-populations">-</div>
+          <div class="text-xs text-gray-400">Populations</div>
+        </div>
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-alien-yellow" id="metric-civilizations">-</div>
+          <div class="text-xs text-gray-400">Civilizations</div>
+        </div>
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-green-400" id="metric-species">-</div>
+          <div class="text-xs text-gray-400">Species</div>
+        </div>
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-orange-400" id="metric-experiments">-</div>
+          <div class="text-xs text-gray-400">Experiments</div>
+        </div>
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-pink-400" id="metric-events">-</div>
+          <div class="text-xs text-gray-400">Events</div>
+        </div>
+        <div class="text-center p-3 bg-space-700 rounded-lg">
+          <div class="text-2xl font-bold text-cyan-400" id="metric-dbsize">-</div>
+          <div class="text-xs text-gray-400">DB Size</div>
+        </div>
+      </div>
+
+      <!-- World Info -->
+      <div id="world-info" class="mt-4 p-4 bg-space-700 rounded-lg hidden">
+        <h3 class="text-sm font-semibold text-alien-purple mb-2">🌍 Active World</h3>
+        <div id="world-details" class="text-sm text-gray-300"></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card rounded-xl p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">⚡ Actions</h2>
+      
+      <div class="space-y-4">
+        <!-- Migrate -->
+        <div class="flex items-center justify-between p-4 bg-space-700 rounded-lg">
+          <div>
+            <h3 class="font-medium text-alien-blue">🔧 Run Migrations</h3>
+            <p class="text-sm text-gray-400">Create database tables if they don't exist</p>
+          </div>
+          <button onclick="runMigration()" id="btn-migrate" class="btn bg-alien-blue hover:bg-blue-600 px-4 py-2 rounded-lg font-medium">
+            Migrate
+          </button>
+        </div>
+
+        <!-- Seed -->
+        <div class="flex items-center justify-between p-4 bg-space-700 rounded-lg">
+          <div>
+            <h3 class="font-medium text-alien-green">🌱 Seed World</h3>
+            <p class="text-sm text-gray-400">Generate a new world with civilizations, species & ecosystems</p>
+            <label class="flex items-center gap-2 mt-2 text-sm">
+              <input type="checkbox" id="include-fake-players" class="rounded">
+              <span class="text-gray-400">Include fake test players (password: password123)</span>
+            </label>
+          </div>
+          <button onclick="runSeed()" id="btn-seed" class="btn bg-alien-green hover:bg-green-600 text-black px-4 py-2 rounded-lg font-medium">
+            Seed
+          </button>
+        </div>
+
+        <!-- Reset World -->
+        <div class="flex items-center justify-between p-4 bg-space-700 rounded-lg border border-orange-500/30">
+          <div>
+            <h3 class="font-medium text-orange-400">🔄 Reset World</h3>
+            <p class="text-sm text-gray-400">Delete all world data but keep player accounts</p>
+          </div>
+          <button onclick="resetWorld()" id="btn-reset" class="btn bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg font-medium">
+            Reset World
+          </button>
+        </div>
+
+        <!-- Full Reset -->
+        <div class="flex items-center justify-between p-4 bg-space-700 rounded-lg border border-alien-red/30">
+          <div>
+            <h3 class="font-medium text-alien-red">💥 Full Reset</h3>
+            <p class="text-sm text-gray-400">Delete EVERYTHING including all player accounts</p>
+          </div>
+          <button onclick="fullReset()" id="btn-fullreset" class="btn bg-alien-red hover:bg-red-600 px-4 py-2 rounded-lg font-medium">
+            Full Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Output -->
+    <div class="card rounded-xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">📜 Activity Log</h2>
+        <button onclick="clearLog()" class="text-sm text-gray-400 hover:text-white">Clear</button>
+      </div>
+      <div id="log" class="bg-black/50 rounded-lg p-4 h-48 overflow-y-auto font-mono text-sm">
+        <div class="text-gray-500">Ready...</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-8 text-gray-500 text-sm">
+      👽 Aliens in Space - Database Admin Panel
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    
+    function log(message, type = 'info') {
+      const logEl = document.getElementById('log');
+      const colors = { info: 'text-gray-300', success: 'text-green-400', error: 'text-red-400', warning: 'text-yellow-400' };
+      const time = new Date().toLocaleTimeString();
+      logEl.innerHTML += `<div class="${colors[type]}">[${time}] ${message}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('log').innerHTML = '<div class="text-gray-500">Log cleared...</div>';
+    }
+
+    function setButtonLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      if (loading) {
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = '⏳ Working...';
+      } else {
+        btn.textContent = btn.dataset.originalText || btn.textContent;
+      }
+    }
+
+    async function loadMetrics() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/metrics`);
+        const data = await res.json();
+
+        // Update status
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        if (data.connection === 'ok') {
+          statusDot.className = 'status-dot bg-green-500';
+          statusText.textContent = 'Connected';
+          statusText.className = 'text-sm text-green-400';
+        } else {
+          statusDot.className = 'status-dot bg-red-500';
+          statusText.textContent = 'Disconnected';
+          statusText.className = 'text-sm text-red-400';
+        }
+
+        // Connection info
+        document.getElementById('connection-info').textContent = 
+          `Last checked: ${data.timestamp || 'N/A'}`;
+
+        // Metrics
+        document.getElementById('metric-players').textContent = data.players ?? '-';
+        document.getElementById('metric-cells').textContent = data.cells ?? '-';
+        document.getElementById('metric-populations').textContent = data.populations ?? '-';
+        document.getElementById('metric-civilizations').textContent = data.civilizations ?? '-';
+        document.getElementById('metric-species').textContent = data.species ?? '-';
+        document.getElementById('metric-experiments').textContent = data.experiments ?? '-';
+        document.getElementById('metric-events').textContent = data.events ?? '-';
+        document.getElementById('metric-dbsize').textContent = data.database_size ?? '-';
+
+        // World info
+        if (data.world_info) {
+          document.getElementById('world-info').classList.remove('hidden');
+          document.getElementById('world-details').innerHTML = `
+            <div><strong>Name:</strong> ${data.world_info.name}</div>
+            <div><strong>Seed:</strong> ${data.world_info.seed}</div>
+            <div><strong>Year:</strong> ${data.world_info.current_year} (Tick: ${data.world_info.current_tick})</div>
+            <div><strong>Status:</strong> ${data.world_info.status}</div>
+          `;
+        } else {
+          document.getElementById('world-info').classList.add('hidden');
+        }
+
+        log('Metrics refreshed', 'success');
+      } catch (err) {
+        log(`Failed to load metrics: ${err.message}`, 'error');
+        document.getElementById('status-dot').className = 'status-dot bg-red-500';
+        document.getElementById('status-text').textContent = 'Error';
+      }
+    }
+
+    async function runMigration() {
+      if (!confirm('Run database migrations? This will create tables if they don\'t exist.')) return;
+      
+      setButtonLoading('btn-migrate', true);
+      log('Running migrations...', 'info');
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/migrate`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.success) {
+          log('✅ Migrations completed successfully!', 'success');
+        } else {
+          log(`❌ Migration failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        log(`❌ Migration error: ${err.message}`, 'error');
+      }
+      
+      setButtonLoading('btn-migrate', false);
+      loadMetrics();
+    }
+
+    async function runSeed() {
+      if (!confirm('Seed the database with a new world? This will create civilizations, species, and ecosystems.')) return;
+      
+      const includeFakePlayers = document.getElementById('include-fake-players').checked;
+      
+      setButtonLoading('btn-seed', true);
+      log(`Seeding world... (fake players: ${includeFakePlayers})`, 'info');
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/seed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ includeFakePlayers })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          log(`✅ World seeded! ${data.stats.cells} cells, ${data.stats.civilizations} civilizations, ${data.stats.species} species`, 'success');
+          if (data.stats.fakePlayers > 0) {
+            log(`👽 Created ${data.stats.fakePlayers} test players (password: password123)`, 'info');
+          }
+        } else {
+          log(`❌ Seed failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        log(`❌ Seed error: ${err.message}`, 'error');
+      }
+      
+      setButtonLoading('btn-seed', false);
+      loadMetrics();
+    }
+
+    async function resetWorld() {
+      if (!confirm('⚠️ Reset all world data? Player accounts will be preserved.')) return;
+      if (!confirm('Are you SURE? This cannot be undone!')) return;
+      
+      setButtonLoading('btn-reset', true);
+      log('Resetting world data...', 'warning');
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/reset`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.success) {
+          log('✅ World data reset! Players preserved.', 'success');
+        } else {
+          log(`❌ Reset failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        log(`❌ Reset error: ${err.message}`, 'error');
+      }
+      
+      setButtonLoading('btn-reset', false);
+      loadMetrics();
+    }
+
+    async function fullReset() {
+      if (!confirm('💥 FULL RESET: Delete ALL data including player accounts?')) return;
+      if (!confirm('⚠️ This will DELETE EVERYTHING. Are you absolutely sure?')) return;
+      if (!confirm('Last chance! Type "DELETE" mentally and click OK to proceed.')) return;
+      
+      setButtonLoading('btn-fullreset', true);
+      log('🔥 Full database reset in progress...', 'warning');
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/reset-all`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.success) {
+          log('💥 Full reset complete! All data deleted.', 'success');
+        } else {
+          log(`❌ Full reset failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        log(`❌ Full reset error: ${err.message}`, 'error');
+      }
+      
+      setButtonLoading('btn-fullreset', false);
+      loadMetrics();
+    }
+
+    // Load metrics on page load
+    loadMetrics();
+    // Auto-refresh every 30 seconds
+    setInterval(loadMetrics, 30000);
+  </script>
+</body>
+</html>
