@@ -62,8 +62,8 @@ export class SimulationEngine {
 
       console.log(`🌍 Simulation started for world ${this.worldId} at tick ${this.currentTick} (year ${this.currentYear})`);
 
-      // Run simulation tick every second
-      this.tickInterval = setInterval(() => this.tick(), 1000);
+      // Run simulation tick every 2 seconds (2 ticks per day)
+      this.tickInterval = setInterval(() => this.tick(), 2000);
     } catch (error: any) {
       // Database tables may not exist yet - this is OK, user needs to initialize
       if (error.code === '42P01') {
@@ -127,6 +127,7 @@ export class SimulationEngine {
       );
 
       // Broadcast tick update
+      console.log(`⏱️  Tick ${this.currentTick} (Year ${this.currentYear}) - ${populations.length} populations`);
       this.io.emit('tick', {
         tick: this.currentTick,
         year: this.currentYear,

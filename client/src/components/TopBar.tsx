@@ -17,7 +17,7 @@ export function TopBar() {
             <span className="text-2xl">👽</span>
             <div className="flex flex-col">
               <span className="font-bold text-white">Aliens in Space</span>
-              <span className="text-xs text-gray-400">v0.2.8</span>
+              <span className="text-xs text-gray-400">v0.2.9</span>
             </div>
           </div>
           
