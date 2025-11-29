@@ -27,7 +27,7 @@ function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector
 }
 
 function CellDots() {
-  const { cells, populations, overlayMode, setSelectedCellId, selectedCellId } = useStore()
+  const { cells, populations, overlayMode, setSelectedCellId, selectedCellId, showCellInfo, toggleCellInfo } = useStore()
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const { camera, raycaster, pointer } = useThree()
 
@@ -137,6 +137,10 @@ function CellDots() {
       const instanceId = intersects[0].instanceId
       if (instanceId !== undefined && cells[instanceId]) {
         setSelectedCellId(cells[instanceId].id)
+        // Auto-open cell info panel if not already open
+        if (!showCellInfo) {
+          toggleCellInfo()
+        }
       }
     }
   }

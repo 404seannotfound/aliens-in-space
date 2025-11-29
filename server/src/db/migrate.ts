@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS players (
   benevolence INTEGER DEFAULT 0,
   mischief INTEGER DEFAULT 0,
   curiosity INTEGER DEFAULT 0,
-  experiment_points INTEGER DEFAULT 100,
+  experiment_points INTEGER DEFAULT 1000,
   created_at TIMESTAMP DEFAULT NOW(),
   last_seen TIMESTAMP DEFAULT NOW()
 );

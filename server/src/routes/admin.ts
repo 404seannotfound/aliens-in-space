@@ -74,7 +74,7 @@ adminRouter.post('/migrate', async (req: Request, res: Response) => {
         benevolence INTEGER DEFAULT 0,
         mischief INTEGER DEFAULT 0,
         curiosity INTEGER DEFAULT 0,
-        experiment_points INTEGER DEFAULT 100,
+        experiment_points INTEGER DEFAULT 1000,
         created_at TIMESTAMP DEFAULT NOW(),
         last_seen TIMESTAMP DEFAULT NOW()
       );
@@ -432,7 +432,7 @@ adminRouter.post('/seed', async (req: Request, res: Response) => {
           `INSERT INTO players (username, email, password_hash, benevolence, mischief, curiosity, experiment_points)
            VALUES ($1, $2, $3, $4, $5, $6, $7)
            ON CONFLICT (email) DO NOTHING`,
-          [user.username, user.email, passwordHash, Math.floor(Math.random() * 100), Math.floor(Math.random() * 100), Math.floor(Math.random() * 100), 100]
+          [user.username, user.email, passwordHash, Math.floor(Math.random() * 100), Math.floor(Math.random() * 100), Math.floor(Math.random() * 100), 1000]
         );
       }
     }
