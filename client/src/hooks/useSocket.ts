@@ -93,7 +93,12 @@ export function useSocket() {
   }, [])
 
   const sendMessage = useCallback((channel: string, message: string, channel_id?: string) => {
-    socketRef.current?.emit('chatMessage', { channel, message, channel_id })
+    if (!socketRef.current) {
+      console.error('❌ Socket not connected, cannot send message')
+      return
+    }
+    console.log('💬 Sending message:', message)
+    socketRef.current.emit('chatMessage', { channel, message, channel_id })
   }, [])
 
   const updatePosition = useCallback((lat: number, lon: number) => {
