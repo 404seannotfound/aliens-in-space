@@ -223,6 +223,14 @@ function Planet() {
       const x = Math.floor(((cell.lon + 180) / 360) * size)
       const y = Math.floor(((90 - cell.lat) / 180) * size)
       cellMap.set(`${x},${y}`, cell)
+      
+      // Also add cells at the wrap-around edges for seamless texture
+      if (x < 20) {
+        cellMap.set(`${x + size},${y}`, cell)
+      }
+      if (x > size - 20) {
+        cellMap.set(`${x - size},${y}`, cell)
+      }
     })
 
     // Draw each pixel based on nearby cells
@@ -231,13 +239,18 @@ function Planet() {
     
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
-        // Find nearest cell
+        // Find nearest cell (with wrap-around for x)
         let nearestCell = null
         let minDist = Infinity
         
         for (let dy = -15; dy <= 15; dy++) {
           for (let dx = -15; dx <= 15; dx++) {
-            const cell = cellMap.get(`${x + dx},${y + dy}`)
+            let lookupX = x + dx
+            // Handle wrap-around at texture edges
+            if (lookupX < 0) lookupX += size
+            if (lookupX >= size) lookupX -= size
+            
+            const cell = cellMap.get(`${lookupX},${y + dy}`)
             if (cell) {
               const dist = Math.sqrt(dx * dx + dy * dy)
               if (dist < minDist) {
