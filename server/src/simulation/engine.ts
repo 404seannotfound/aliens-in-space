@@ -47,22 +47,31 @@ export class SimulationEngine {
   }
 
   async start() {
-    // Get the active world
-    const result = await db.query("SELECT id, current_tick, current_year FROM worlds WHERE status = 'running' LIMIT 1");
-    if (result.rows.length === 0) {
-      console.log('No active world found. Create one with db:seed');
-      return;
+    try {
+      // Get the active world
+      const result = await db.query("SELECT id, current_tick, current_year FROM worlds WHERE status = 'running' LIMIT 1");
+      if (result.rows.length === 0) {
+        console.log('No active world found. Initialize database first.');
+        return;
+      }
+
+      this.worldId = result.rows[0].id;
+      this.currentTick = result.rows[0].current_tick;
+      this.currentYear = result.rows[0].current_year;
+      this.isRunning = true;
+
+      console.log(`🌍 Simulation started for world ${this.worldId} at tick ${this.currentTick} (year ${this.currentYear})`);
+
+      // Run simulation tick every second
+      this.tickInterval = setInterval(() => this.tick(), 1000);
+    } catch (error: any) {
+      // Database tables may not exist yet - this is OK, user needs to initialize
+      if (error.code === '42P01') {
+        console.log('⚠️ Database tables not found. Please initialize the database via /db-init.html');
+      } else {
+        console.error('Simulation start error:', error);
+      }
     }
-
-    this.worldId = result.rows[0].id;
-    this.currentTick = result.rows[0].current_tick;
-    this.currentYear = result.rows[0].current_year;
-    this.isRunning = true;
-
-    console.log(`🌍 Simulation started for world ${this.worldId} at tick ${this.currentTick} (year ${this.currentYear})`);
-
-    // Run simulation tick every second
-    this.tickInterval = setInterval(() => this.tick(), 1000);
   }
 
   stop() {
