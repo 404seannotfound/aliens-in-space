@@ -41,15 +41,16 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Static files setup - use process.cwd() since Render runs from project root
-const projectRoot = process.cwd();
+// Static files setup
+// npm workspaces runs from server directory, so paths are relative to there
+const serverDir = process.cwd();
 
 // Serve admin page from server's public folder
-app.use(express.static(path.join(projectRoot, 'server/public')));
+app.use(express.static(path.join(serverDir, 'public')));
 
-// Serve client build in production
+// Serve client build in production (client/dist is sibling to server)
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(projectRoot, 'client/dist')));
+  app.use(express.static(path.join(serverDir, '../client/dist')));
 }
 
 // Routes
@@ -66,7 +67,7 @@ if (process.env.NODE_ENV === 'production') {
     if (req.path.startsWith('/api') || req.path.startsWith('/socket.io') || req.path.includes('.')) {
       return next();
     }
-    res.sendFile(path.join(projectRoot, 'client/dist/index.html'));
+    res.sendFile(path.join(serverDir, '../client/dist/index.html'));
   });
 }
 
