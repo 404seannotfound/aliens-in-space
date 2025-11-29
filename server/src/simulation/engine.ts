@@ -186,6 +186,12 @@ export class SimulationEngine {
     neighbors: PopulationState[],
     isYearEnd: boolean
   ) {
+    // Guard against invalid data
+    if (!pop.population_size || pop.population_size <= 0) {
+      // Population is extinct, skip update
+      return;
+    }
+
     // Calculate modifiers based on environment and neighbors
     const carryingCapacity = this.calculateCarryingCapacity(cell, pop.tech_level);
     const crowdingFactor = pop.population_size / carryingCapacity;
