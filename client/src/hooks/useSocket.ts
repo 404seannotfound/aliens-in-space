@@ -61,7 +61,7 @@ export function useSocket() {
       console.log(`📅 Year ${year}:`, stats)
     })
 
-    socket.on('techAdvancement', ({ civilization_id, tech_name }) => {
+    socket.on('techAdvancement', ({ tech_name }) => {
       console.log(`🔬 Tech advancement: ${tech_name}`)
     })
 
