@@ -43,21 +43,16 @@ export function CellInfoPanel() {
           </div>
 
           {/* Environment Stats */}
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-2 gap-2 text-center">
             <div className="p-2 bg-space-700/50 rounded-lg">
               <Thermometer className="w-4 h-4 mx-auto mb-1 text-red-400" />
-              <p className="text-xs text-gray-400">Temp</p>
-              <p className="text-sm text-white">{cell.temperature}°C</p>
+              <p className="text-xs text-gray-400">Temperature</p>
+              <p className="text-sm text-white">{cell.temperature?.toFixed(1) || 'N/A'}°C</p>
             </div>
             <div className="p-2 bg-space-700/50 rounded-lg">
-              <Droplets className="w-4 h-4 mx-auto mb-1 text-blue-400" />
-              <p className="text-xs text-gray-400">Moisture</p>
-              <p className="text-sm text-white">{cell.moisture}%</p>
-            </div>
-            <div className="p-2 bg-space-700/50 rounded-lg">
-              <Mountain className="w-4 h-4 mx-auto mb-1 text-gray-400" />
-              <p className="text-xs text-gray-400">Elevation</p>
-              <p className="text-sm text-white">{cell.elevation}m</p>
+              <Mountain className="w-4 h-4 mx-auto mb-1 text-green-400" />
+              <p className="text-xs text-gray-400">Food Capacity</p>
+              <p className="text-sm text-white">{cell.food_capacity || 0}</p>
             </div>
           </div>
 
