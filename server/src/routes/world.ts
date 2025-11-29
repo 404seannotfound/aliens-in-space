@@ -29,8 +29,7 @@ worldRouter.get('/cells', async (req: AuthRequest, res: Response) => {
     }
 
     const cells = await db.query(`
-      SELECT c.id, c.x, c.y, c.lat, c.lon, c.biome, c.elevation, c.temperature, c.moisture,
-             c.food_capacity, c.mineral_capacity
+      SELECT c.id, c.x, c.y, c.lat, c.lon, c.biome, c.temperature, c.food_capacity
       FROM cells c
       WHERE c.world_id = $1
       ORDER BY c.y, c.x
