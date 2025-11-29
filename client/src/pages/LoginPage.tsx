@@ -22,7 +22,7 @@ export function LoginPage() {
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register'
       const body = isLogin 
-        ? { email, password }
+        ? { username, password }
         : { email, username, password }
 
       const response = await fetch(`${API_URL}${endpoint}`, {
@@ -102,20 +102,37 @@ export function LoginPage() {
             </div>
           )}
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="alien@galaxy.space"
-                className="input pl-10"
-                required
-              />
+          {isLogin ? (
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Username</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="CosmicObserver"
+                  className="input pl-10"
+                  required
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="alien@galaxy.space"
+                  className="input pl-10"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm text-gray-400 mb-1">Password</label>

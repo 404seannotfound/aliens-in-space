@@ -65,15 +65,17 @@ authRouter.post('/register', async (req: Request, res: Response) => {
 // Login
 authRouter.post('/login', async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
+    const identifier = username || email;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Username/email and password required' });
     }
 
+    // Support login with either username or email
     const result = await db.query(
-      'SELECT * FROM players WHERE email = $1',
-      [email]
+      'SELECT * FROM players WHERE email = $1 OR username = $1',
+      [identifier]
     );
 
     if (result.rows.length === 0) {

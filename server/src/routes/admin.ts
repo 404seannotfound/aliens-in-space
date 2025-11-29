@@ -37,6 +37,19 @@ adminRouter.get('/metrics', async (req: Request, res: Response) => {
       metrics.database_size = 'unknown';
     }
 
+    // Player list
+    try {
+      const players = await db.query(`
+        SELECT username, email, avatar_type, benevolence, mischief, curiosity, experiment_points, 
+               created_at, last_seen 
+        FROM players 
+        ORDER BY created_at DESC
+      `);
+      metrics.players = players.rows;
+    } catch {
+      metrics.players = [];
+    }
+
     // Connection test
     metrics.connection = 'ok';
     metrics.timestamp = new Date().toISOString();
