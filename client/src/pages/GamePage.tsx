@@ -97,15 +97,26 @@ export function GamePage() {
   // Show space travel animation during loading
   if (showSpaceTravel) {
     return (
-      <SpaceTravel 
-        worldName={worldName}
-        progress={loadingProgress}
-        ready={globeReady}
-        onComplete={() => {
-          setShowSpaceTravel(false)
-          setLoading(false)
-        }}
-      />
+      <>
+        <SpaceTravel 
+          worldName={worldName}
+          progress={loadingProgress}
+          ready={globeReady}
+          onComplete={() => {
+            setShowSpaceTravel(false)
+            setLoading(false)
+          }}
+        />
+        {/* Render Globe in background so it can signal ready */}
+        {dataLoaded && (
+          <div className="fixed inset-0 pointer-events-none" style={{ opacity: 0, zIndex: -1 }}>
+            <Globe onReady={() => {
+              console.log('🌍 Globe is ready!')
+              setGlobeReady(true)
+            }} />
+          </div>
+        )}
+      </>
     )
   }
   
