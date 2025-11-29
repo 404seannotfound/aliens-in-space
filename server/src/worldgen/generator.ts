@@ -153,8 +153,8 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
   
   for (const cell of cells) {
     await db.query(`
-      INSERT INTO cells (world_id, x, y, lat, lon, biome, temperature, moisture, elevation, food_capacity)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO cells (world_id, x, y, lat, lon, biome, temperature, food_capacity)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `, [
       worldId,
       cell.x,
@@ -163,8 +163,6 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
       cell.lon,
       cell.biome,
       cell.temperature,
-      cell.moisture,
-      cell.elevation,
       cell.food_capacity
     ]);
   }
