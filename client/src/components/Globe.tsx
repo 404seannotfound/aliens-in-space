@@ -245,7 +245,9 @@ export function Globe() {
   return (
     <Canvas
       camera={{ position: [0, 0, 5], fov: 60 }}
-      style={{ background: 'transparent' }}
+      style={{ background: 'transparent', pointerEvents: 'auto' }}
+      eventSource={document.getElementById('root')!}
+      eventPrefix="client"
     >
       <ambientLight intensity={0.3} />
       <pointLight position={[10, 10, 10]} intensity={1} />

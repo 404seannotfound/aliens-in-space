@@ -54,6 +54,7 @@ export function useSocket() {
     })
 
     socket.on('tick', ({ tick, year }) => {
+      console.log('📡 Tick received:', tick, 'Year:', year)
       setWorldState({ currentTick: tick, currentYear: year })
     })
 
