@@ -194,12 +194,12 @@ export class SimulationEngine {
     }
 
     // Calculate modifiers based on environment and neighbors
-    const carryingCapacity = this.calculateCarryingCapacity(cell, pop.tech_level);
-    const crowdingFactor = pop.population_size / carryingCapacity;
+    const carryingCapacity = Math.max(100, this.calculateCarryingCapacity(cell, pop.tech_level));
+    const crowdingFactor = Math.min(10, pop.population_size / carryingCapacity); // Cap at 10x overcrowding
     
     // Adjust birth/death rates based on conditions
-    let effectiveBirthRate = pop.birth_rate * pop.prosperity / 50;
-    let effectiveDeathRate = pop.death_rate;
+    let effectiveBirthRate = Math.max(0, pop.birth_rate * pop.prosperity / 50);
+    let effectiveDeathRate = Math.max(0, pop.death_rate);
 
     // Overpopulation stress
     if (crowdingFactor > 1) {
@@ -266,12 +266,27 @@ export class SimulationEngine {
       : pop.ideology_collectivism;
     const newCollectivism = pop.ideology_collectivism + (avgNeighborCollectivism - pop.ideology_collectivism) * 0.001;
 
+    // Final safety check - ensure no NaN values
+    if (isNaN(newPopulation) || isNaN(newStability) || isNaN(newProsperity) || 
+        isNaN(newEducation) || isNaN(newTechLevel) || isNaN(newCollectivism)) {
+      console.error(`NaN detected for population ${pop.id}, skipping update`);
+      return;
+    }
+
     await db.query(`
       UPDATE populations SET 
         population_size = $1, stability = $2, prosperity = $3, education = $4,
         tech_level = $5, ideology_collectivism = $6, updated_at = NOW()
       WHERE id = $7
-    `, [newPopulation, newStability, newProsperity, newEducation, newTechLevel, newCollectivism, pop.id]);
+    `, [
+      Math.floor(newPopulation), 
+      Math.floor(newStability), 
+      Math.floor(newProsperity), 
+      Math.floor(newEducation), 
+      newTechLevel, 
+      newCollectivism, 
+      pop.id
+    ]);
   }
 
   private calculateCarryingCapacity(cell: CellState, techLevel: number): number {
