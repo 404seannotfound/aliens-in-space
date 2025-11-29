@@ -13,6 +13,14 @@ export function CellInfoPanel() {
   const cell = cells.find(c => c.id === selectedCellId)
   const population = populations.find(p => p.cell_id === selectedCellId)
 
+  // Debug logging
+  console.log('CellInfoPanel:', { 
+    selectedCellId, 
+    cellsCount: cells.length, 
+    cell: cell ? { id: cell.id, lat: cell.lat, lon: cell.lon, biome: cell.biome } : null,
+    population: population ? { name: population.civilization_name, size: population.population_size } : null
+  })
+
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-space-600">

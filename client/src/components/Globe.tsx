@@ -166,7 +166,15 @@ function CellDots() {
     if (intersects.length > 0) {
       const instanceId = intersects[0].instanceId
       if (instanceId !== undefined && cells[instanceId]) {
-        setSelectedCellId(cells[instanceId].id)
+        const clickedCell = cells[instanceId]
+        console.log('Cell clicked:', { 
+          instanceId, 
+          cellId: clickedCell.id, 
+          biome: clickedCell.biome,
+          lat: clickedCell.lat,
+          lon: clickedCell.lon 
+        })
+        setSelectedCellId(clickedCell.id)
         // Auto-open cell info panel if not already open
         if (!showCellInfo) {
           toggleCellInfo()
