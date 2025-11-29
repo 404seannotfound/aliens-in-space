@@ -173,64 +173,104 @@ function Planet() {
   const meshRef = useRef<THREE.Mesh>(null)
   const textureRef = useRef<THREE.CanvasTexture | null>(null)
 
-  // Create biome texture and displacement map from cell data
+  // Create Earth-like texture with realistic continents and biomes
   const { biomeTexture, displacementMap } = useMemo(() => {
     if (cells.length === 0) return { biomeTexture: null, displacementMap: null }
 
-    // Create a canvas to paint biomes
     const canvas = document.createElement('canvas')
-    const size = 512
+    const size = 1024
     canvas.width = size
     canvas.height = size
     const ctx = canvas.getContext('2d')
     if (!ctx) return { biomeTexture: null, displacementMap: null }
 
-    // Fill with ocean color
-    ctx.fillStyle = BIOME_COLORS.ocean
-    ctx.fillRect(0, 0, size, size)
-
-    // Create displacement canvas for terrain height
+    // Create displacement canvas
     const dispCanvas = document.createElement('canvas')
     dispCanvas.width = size
     dispCanvas.height = size
     const dispCtx = dispCanvas.getContext('2d')
     if (!dispCtx) return { biomeTexture: null, displacementMap: null }
-    
-    // Fill with sea level (mid gray)
-    dispCtx.fillStyle = '#404040'
+
+    // Fill with deep ocean
+    ctx.fillStyle = '#0a1929'
+    ctx.fillRect(0, 0, size, size)
+    dispCtx.fillStyle = '#202020'
     dispCtx.fillRect(0, 0, size, size)
 
-    // Draw each cell as a colored region with height
+    // Create a map of cell biomes for lookup
+    const cellMap = new Map()
     cells.forEach(cell => {
-      const color = BIOME_COLORS[cell.biome] || '#444444'
-      
-      // Convert lat/lon to texture coordinates (equirectangular projection)
-      const x = ((cell.lon + 180) / 360) * size
-      const y = ((90 - cell.lat) / 180) * size
-      
-      // Draw biome color
-      ctx.fillStyle = color
-      ctx.beginPath()
-      ctx.arc(x, y, 10, 0, Math.PI * 2)
-      ctx.fill()
-      
-      // Draw height based on biome type
-      let height = 64 // sea level
-      if (cell.biome === 'mountain') height = 200
-      else if (cell.biome === 'grassland') height = 100
-      else if (cell.biome === 'forest') height = 110
-      else if (cell.biome === 'jungle') height = 105
-      else if (cell.biome === 'desert') height = 95
-      else if (cell.biome === 'tundra') height = 90
-      else if (cell.biome === 'wetland') height = 70
-      else if (cell.biome === 'ocean') height = 30
-      
-      const heightColor = `rgb(${height}, ${height}, ${height})`
-      dispCtx.fillStyle = heightColor
-      dispCtx.beginPath()
-      dispCtx.arc(x, y, 10, 0, Math.PI * 2)
-      dispCtx.fill()
+      const x = Math.floor(((cell.lon + 180) / 360) * size)
+      const y = Math.floor(((90 - cell.lat) / 180) * size)
+      cellMap.set(`${x},${y}`, cell)
     })
+
+    // Draw each pixel based on nearby cells
+    const imageData = ctx.createImageData(size, size)
+    const dispImageData = dispCtx.createImageData(size, size)
+    
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        // Find nearest cell
+        let nearestCell = null
+        let minDist = Infinity
+        
+        for (let dy = -15; dy <= 15; dy++) {
+          for (let dx = -15; dx <= 15; dx++) {
+            const cell = cellMap.get(`${x + dx},${y + dy}`)
+            if (cell) {
+              const dist = Math.sqrt(dx * dx + dy * dy)
+              if (dist < minDist) {
+                minDist = dist
+                nearestCell = cell
+              }
+            }
+          }
+        }
+
+        const idx = (y * size + x) * 4
+        
+        if (nearestCell && minDist < 12) {
+          // Land - use biome color
+          const color = BIOME_COLORS[nearestCell.biome] || '#444444'
+          const rgb = parseInt(color.slice(1), 16)
+          imageData.data[idx] = (rgb >> 16) & 255
+          imageData.data[idx + 1] = (rgb >> 8) & 255
+          imageData.data[idx + 2] = rgb & 255
+          imageData.data[idx + 3] = 255
+
+          // Height based on biome
+          let height = 100
+          if (nearestCell.biome === 'mountain') height = 220
+          else if (nearestCell.biome === 'grassland') height = 110
+          else if (nearestCell.biome === 'forest') height = 120
+          else if (nearestCell.biome === 'jungle') height = 115
+          else if (nearestCell.biome === 'desert') height = 105
+          else if (nearestCell.biome === 'tundra') height = 95
+          else if (nearestCell.biome === 'wetland') height = 85
+          else if (nearestCell.biome === 'ocean') height = 40
+          
+          dispImageData.data[idx] = height
+          dispImageData.data[idx + 1] = height
+          dispImageData.data[idx + 2] = height
+          dispImageData.data[idx + 3] = 255
+        } else {
+          // Ocean
+          imageData.data[idx] = 10
+          imageData.data[idx + 1] = 25
+          imageData.data[idx + 2] = 41
+          imageData.data[idx + 3] = 255
+          
+          dispImageData.data[idx] = 32
+          dispImageData.data[idx + 1] = 32
+          dispImageData.data[idx + 2] = 32
+          dispImageData.data[idx + 3] = 255
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0)
+    dispCtx.putImageData(dispImageData, 0, 0)
 
     const texture = new THREE.CanvasTexture(canvas)
     texture.needsUpdate = true
