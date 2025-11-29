@@ -15,7 +15,10 @@ export function TopBar() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-space-800/80 backdrop-blur rounded-xl">
             <span className="text-2xl">👽</span>
-            <span className="font-bold text-white">Aliens in Space</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-white">Aliens in Space</span>
+              <span className="text-xs text-gray-400">v0.2.8</span>
+            </div>
           </div>
           
           <div className="flex items-center gap-2 px-4 py-2 bg-space-800/80 backdrop-blur rounded-xl">
