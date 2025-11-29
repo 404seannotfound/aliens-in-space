@@ -309,12 +309,11 @@ function Atmosphere() {
 
 export function Globe() {
   return (
-    <Canvas
-      camera={{ position: [0, 0, 5], fov: 60 }}
-      style={{ background: 'transparent', pointerEvents: 'auto' }}
-      eventSource={document.getElementById('root')!}
-      eventPrefix="client"
-    >
+    <div className="w-full h-full pointer-events-auto">
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 60 }}
+        style={{ background: 'transparent' }}
+      >
       <ambientLight intensity={0.3} />
       <pointLight position={[10, 10, 10]} intensity={1} />
       <pointLight position={[-10, -10, -10]} intensity={0.5} color="#9c27b0" />
@@ -341,5 +340,6 @@ export function Globe() {
         zoomSpeed={0.8}
       />
     </Canvas>
+    </div>
   )
 }
