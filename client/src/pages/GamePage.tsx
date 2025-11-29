@@ -34,6 +34,7 @@ export function GamePage() {
   } = useStore()
 
   const [loading, setLoading] = useState(true)
+  const [loadingProgress, setLoadingProgress] = useState(0)
   const { connect, disconnect } = useSocket()
 
   useEffect(() => {
@@ -41,11 +42,15 @@ export function GamePage() {
       try {
         const headers = { 'Authorization': `Bearer ${token}` }
         
-        const [cellsRes, popsRes, civsRes] = await Promise.all([
-          fetch(`${API_URL}/api/world/cells`, { headers }),
-          fetch(`${API_URL}/api/world/populations`, { headers }),
-          fetch(`${API_URL}/api/world/civilizations`, { headers })
-        ])
+        setLoadingProgress(10)
+        const cellsRes = await fetch(`${API_URL}/api/world/cells`, { headers })
+        setLoadingProgress(40)
+        
+        const popsRes = await fetch(`${API_URL}/api/world/populations`, { headers })
+        setLoadingProgress(70)
+        
+        const civsRes = await fetch(`${API_URL}/api/world/civilizations`, { headers })
+        setLoadingProgress(90)
 
         if (cellsRes.ok && popsRes.ok && civsRes.ok) {
           const cells = await cellsRes.json()
@@ -55,11 +60,12 @@ export function GamePage() {
           setCells(cells)
           setPopulations(populations)
           setCivilizations(civilizations)
+          setLoadingProgress(100)
         }
       } catch (error) {
         console.error('Failed to load world data:', error)
       } finally {
-        setLoading(false)
+        setTimeout(() => setLoading(false), 300)
       }
     }
 
@@ -77,9 +83,18 @@ export function GamePage() {
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-space-900">
-        <div className="text-center">
+        <div className="text-center max-w-md w-full px-8">
           <div className="inline-block w-16 h-16 border-4 border-alien-purple/30 border-t-alien-purple rounded-full animate-spin mb-4" />
-          <p className="text-gray-400">Loading the universe...</p>
+          <p className="text-gray-400 mb-4">Loading the universe...</p>
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-space-700 rounded-full h-2 overflow-hidden">
+            <div 
+              className="bg-alien-purple h-full transition-all duration-300 ease-out"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-2">{loadingProgress}%</p>
         </div>
       </div>
     )
