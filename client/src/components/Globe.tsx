@@ -338,6 +338,7 @@ export function Globe() {
         maxDistance={10}
         rotateSpeed={0.5}
         zoomSpeed={0.8}
+        makeDefault={false}
       />
     </Canvas>
     </div>
