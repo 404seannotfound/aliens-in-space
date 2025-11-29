@@ -94,6 +94,12 @@
         <h3 class="text-sm font-semibold text-alien-purple mb-2">🌍 Active World</h3>
         <div id="world-details" class="text-sm text-gray-300"></div>
       </div>
+
+      <!-- Player List -->
+      <div id="player-list" class="mt-4 p-4 bg-space-700 rounded-lg hidden">
+        <h3 class="text-sm font-semibold text-alien-green mb-2">👥 Players</h3>
+        <div id="player-items" class="text-sm text-gray-300"></div>
+      </div>
     </div>
 
     <!-- Actions -->
@@ -217,7 +223,7 @@
           `Last checked: ${data.timestamp || 'N/A'}`;
 
         // Metrics
-        document.getElementById('metric-players').textContent = data.players ?? '-';
+        document.getElementById('metric-players').textContent = Array.isArray(data.players) ? data.players.length : (data.players ?? '-');
         document.getElementById('metric-cells').textContent = data.cells ?? '-';
         document.getElementById('metric-populations').textContent = data.populations ?? '-';
         document.getElementById('metric-civilizations').textContent = data.civilizations ?? '-';
@@ -237,6 +243,26 @@
           `;
         } else {
           document.getElementById('world-info').classList.add('hidden');
+        }
+
+        // Player list
+        const playerListEl = document.getElementById('player-list');
+        if (Array.isArray(data.players) && data.players.length > 0) {
+          playerListEl.classList.remove('hidden');
+          const playerItems = data.players.map(p => `
+            <div class="flex items-center justify-between py-2 border-b border-space-600 last:border-0">
+              <div>
+                <span class="font-medium">${p.username}</span>
+                <span class="text-xs text-gray-500 ml-2">${p.email}</span>
+              </div>
+              <div class="text-xs text-gray-400">
+                ${p.experiment_points} pts
+              </div>
+            </div>
+          `).join('');
+          document.getElementById('player-items').innerHTML = playerItems;
+        } else {
+          playerListEl.classList.add('hidden');
         }
 
         log('Metrics refreshed', 'success');
