@@ -38,11 +38,11 @@ function latLonToVector3(lat: number, lon: number, radius: number, biome?: strin
   const elevation = biome ? (BIOME_ELEVATION[biome] || 0) : 0
   const adjustedRadius = radius + elevation
   
-  return new THREE.Vector3(
-    -adjustedRadius * Math.sin(phi) * Math.cos(theta),
-    adjustedRadius * Math.cos(phi),
-    adjustedRadius * Math.sin(phi) * Math.sin(theta)
-  )
+  const x = -adjustedRadius * Math.sin(phi) * Math.cos(theta)
+  const y = adjustedRadius * Math.cos(phi)
+  const z = adjustedRadius * Math.sin(phi) * Math.sin(theta)
+  
+  return new THREE.Vector3(x, y, z)
 }
 
 function CellDots() {
