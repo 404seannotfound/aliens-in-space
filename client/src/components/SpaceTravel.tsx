@@ -58,61 +58,78 @@ function Starfield() {
 }
 
 function Wormhole({ progress }: { progress: number }) {
-  const wormholeRef = useRef<THREE.Mesh>(null)
+  const groupRef = useRef<THREE.Group>(null)
   
   useFrame((_, delta) => {
-    if (wormholeRef.current) {
-      wormholeRef.current.rotation.z += delta * 2
+    if (groupRef.current) {
+      groupRef.current.rotation.z += delta * 0.5
     }
   })
   
-  // Calculate how many rings should be visible based on progress
-  const visibleRings = Math.ceil((progress / 100) * 5)
+  // More rings for a fuller wormhole effect
+  const numRings = 12
   
   return (
-    <group>
-      {/* Multiple rotating rings that appear as loading progresses */}
-      {[0, 1, 2, 3, 4].map((i) => {
-        const ringProgress = Math.max(0, Math.min(1, (progress - i * 20) / 20))
-        const isVisible = i < visibleRings
+    <group ref={groupRef}>
+      {/* Multiple rotating rings that create tunnel effect */}
+      {Array.from({ length: numRings }).map((_, i) => {
+        const depth = -10 - i * 4
+        const size = 2 + i * 0.3
+        const hue = 0.55 + (i / numRings) * 0.15 // Cyan to blue
+        const opacity = Math.max(0.3, 1 - i / numRings)
         
         return (
           <mesh
             key={i}
-            ref={i === 0 ? wormholeRef : undefined}
-            position={[0, 0, -20 - i * 5]}
-            rotation={[0, 0, i * 0.5]}
-            scale={isVisible ? ringProgress : 0}
+            position={[0, 0, depth]}
+            rotation={[0, 0, (i * Math.PI) / 6]}
           >
-            <torusGeometry args={[3 + i * 0.5, 0.15, 16, 100]} />
+            <torusGeometry args={[size, 0.2, 16, 100]} />
             <meshBasicMaterial
-              color={new THREE.Color().setHSL(0.5 + ringProgress * 0.2, 1, 0.5)}
+              color={new THREE.Color().setHSL(hue, 1, 0.5)}
               transparent
-              opacity={0.6 * ringProgress}
+              opacity={opacity}
               side={THREE.DoubleSide}
             />
           </mesh>
         )
       })}
       
-      {/* Center glow that intensifies with progress */}
-      <mesh position={[0, 0, -30]}>
-        <torusGeometry args={[8, 0.1, 8, 64]} />
+      {/* Inner glow rings */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <mesh
+          key={`glow-${i}`}
+          position={[0, 0, -15 - i * 6]}
+          rotation={[0, 0, -i * 0.3]}
+        >
+          <torusGeometry args={[1.5 + i * 0.2, 0.05, 8, 64]} />
+          <meshBasicMaterial
+            color="#00ffff"
+            transparent
+            opacity={0.4}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      ))}
+      
+      {/* Progress ring - shows loading progress */}
+      <mesh position={[0, 0, -8]} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[5, 5.3, 64, 1, 0, (progress / 100) * Math.PI * 2]} />
         <meshBasicMaterial
-          color="#00ffff"
+          color="#00ff88"
           transparent
-          opacity={0.2 + progress / 100 * 0.3}
+          opacity={0.9}
           side={THREE.DoubleSide}
         />
       </mesh>
       
-      {/* Progress ring */}
-      <mesh position={[0, 0, -15]} rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[6, 6.2, 64, 1, 0, (progress / 100) * Math.PI * 2]} />
+      {/* Center portal glow */}
+      <mesh position={[0, 0, -50]}>
+        <circleGeometry args={[15, 64]} />
         <meshBasicMaterial
-          color="#00ff00"
+          color="#0088ff"
           transparent
-          opacity={0.8}
+          opacity={0.1 + (progress / 100) * 0.2}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -160,17 +177,17 @@ export function SpaceTravel({ worldName, progress, onComplete }: SpaceTravelProp
   const [phase, setPhase] = useState<'wormhole' | 'planet' | 'complete'>('wormhole')
   
   useEffect(() => {
-    // Transition to planet view when progress reaches 90%
-    if (progress >= 90 && phase === 'wormhole') {
+    // Keep wormhole until 100% complete
+    if (progress >= 100 && phase === 'wormhole') {
       setPhase('planet')
     }
     
-    // Complete when progress reaches 100%
-    if (progress >= 100 && phase === 'planet') {
+    // Complete after planet zoom animation
+    if (phase === 'planet') {
       setTimeout(() => {
         setPhase('complete')
         onComplete()
-      }, 1000)
+      }, 2000) // 2 seconds for planet zoom
     }
   }, [progress, phase, onComplete])
   
@@ -195,13 +212,13 @@ export function SpaceTravel({ worldName, progress, onComplete }: SpaceTravelProp
           
           {phase === 'wormhole' && (
             <p className="text-xl text-cyan-400">
-              Entering wormhole... {progress}%
+              Traveling through hyperspace...
             </p>
           )}
           
           {phase === 'planet' && (
             <p className="text-xl text-green-400">
-              Approaching orbit... {progress}%
+              Approaching orbit...
             </p>
           )}
         </div>
