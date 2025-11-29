@@ -173,9 +173,9 @@ function Planet() {
   const meshRef = useRef<THREE.Mesh>(null)
   const textureRef = useRef<THREE.CanvasTexture | null>(null)
 
-  // Create biome texture from cell data
-  const biomeTexture = useMemo(() => {
-    if (cells.length === 0) return null
+  // Create biome texture and displacement map from cell data
+  const { biomeTexture, displacementMap } = useMemo(() => {
+    if (cells.length === 0) return { biomeTexture: null, displacementMap: null }
 
     // Create a canvas to paint biomes
     const canvas = document.createElement('canvas')
@@ -183,13 +183,24 @@ function Planet() {
     canvas.width = size
     canvas.height = size
     const ctx = canvas.getContext('2d')
-    if (!ctx) return null
+    if (!ctx) return { biomeTexture: null, displacementMap: null }
 
-    // Fill with dark space color
-    ctx.fillStyle = '#0a0a1a'
+    // Fill with ocean color
+    ctx.fillStyle = BIOME_COLORS.ocean
     ctx.fillRect(0, 0, size, size)
 
-    // Draw each cell as a colored region
+    // Create displacement canvas for terrain height
+    const dispCanvas = document.createElement('canvas')
+    dispCanvas.width = size
+    dispCanvas.height = size
+    const dispCtx = dispCanvas.getContext('2d')
+    if (!dispCtx) return { biomeTexture: null, displacementMap: null }
+    
+    // Fill with sea level (mid gray)
+    dispCtx.fillStyle = '#404040'
+    dispCtx.fillRect(0, 0, size, size)
+
+    // Draw each cell as a colored region with height
     cells.forEach(cell => {
       const color = BIOME_COLORS[cell.biome] || '#444444'
       
@@ -197,16 +208,37 @@ function Planet() {
       const x = ((cell.lon + 180) / 360) * size
       const y = ((90 - cell.lat) / 180) * size
       
-      // Draw a circle for each cell
+      // Draw biome color
       ctx.fillStyle = color
       ctx.beginPath()
-      ctx.arc(x, y, 8, 0, Math.PI * 2)
+      ctx.arc(x, y, 10, 0, Math.PI * 2)
       ctx.fill()
+      
+      // Draw height based on biome type
+      let height = 64 // sea level
+      if (cell.biome === 'mountain') height = 200
+      else if (cell.biome === 'grassland') height = 100
+      else if (cell.biome === 'forest') height = 110
+      else if (cell.biome === 'jungle') height = 105
+      else if (cell.biome === 'desert') height = 95
+      else if (cell.biome === 'tundra') height = 90
+      else if (cell.biome === 'wetland') height = 70
+      else if (cell.biome === 'ocean') height = 30
+      
+      const heightColor = `rgb(${height}, ${height}, ${height})`
+      dispCtx.fillStyle = heightColor
+      dispCtx.beginPath()
+      dispCtx.arc(x, y, 10, 0, Math.PI * 2)
+      dispCtx.fill()
     })
 
     const texture = new THREE.CanvasTexture(canvas)
     texture.needsUpdate = true
-    return texture
+    
+    const dispTexture = new THREE.CanvasTexture(dispCanvas)
+    dispTexture.needsUpdate = true
+    
+    return { biomeTexture: texture, displacementMap: dispTexture }
   }, [cells])
 
   useFrame((_, delta) => {
@@ -217,9 +249,11 @@ function Planet() {
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[2, 64, 64]} />
+      <sphereGeometry args={[2, 128, 128]} />
       <meshStandardMaterial
         map={biomeTexture}
+        displacementMap={displacementMap}
+        displacementScale={0.15}
         roughness={0.8}
         metalness={0.2}
       />
@@ -228,16 +262,48 @@ function Planet() {
 }
 
 function Atmosphere() {
+  const cloudRef = useRef<THREE.Mesh>(null)
+  
+  useFrame((_, delta) => {
+    if (cloudRef.current) {
+      cloudRef.current.rotation.y += delta * 0.05
+      cloudRef.current.rotation.x += delta * 0.01
+    }
+  })
+
   return (
-    <mesh>
-      <sphereGeometry args={[2.15, 64, 64]} />
-      <meshBasicMaterial
-        color="#4fc3f7"
-        transparent
-        opacity={0.1}
-        side={THREE.BackSide}
-      />
-    </mesh>
+    <>
+      {/* Multiple cloud layers at different heights */}
+      <mesh ref={cloudRef}>
+        <sphereGeometry args={[2.25, 64, 64]} />
+        <meshBasicMaterial
+          color="#87ceeb"
+          transparent
+          opacity={0.15}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      
+      <mesh rotation={[0, Math.PI / 3, 0]}>
+        <sphereGeometry args={[2.3, 64, 64]} />
+        <meshBasicMaterial
+          color="#b0d4f1"
+          transparent
+          opacity={0.1}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      
+      <mesh rotation={[0, Math.PI / 1.5, 0]}>
+        <sphereGeometry args={[2.35, 64, 64]} />
+        <meshBasicMaterial
+          color="#6bb6ff"
+          transparent
+          opacity={0.08}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </>
   )
 }
 
