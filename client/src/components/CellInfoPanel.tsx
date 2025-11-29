@@ -25,7 +25,7 @@ export function CellInfoPanel() {
         </button>
       </div>
 
-      {!cell ? (
+      {!cell || typeof cell.lat !== 'number' || typeof cell.lon !== 'number' ? (
         <p className="text-gray-400 text-sm text-center py-4">
           Click a cell on the globe to see details
         </p>
@@ -35,7 +35,7 @@ export function CellInfoPanel() {
           <div className="flex items-center gap-3">
             <span className="text-3xl">{BIOME_EMOJIS[cell.biome] || '🌍'}</span>
             <div>
-              <p className="font-medium text-white capitalize">{cell.biome}</p>
+              <p className="font-medium text-white capitalize">{cell.biome || 'Unknown'}</p>
               <p className="text-xs text-gray-400">
                 ({cell.lat.toFixed(1)}°, {cell.lon.toFixed(1)}°)
               </p>
