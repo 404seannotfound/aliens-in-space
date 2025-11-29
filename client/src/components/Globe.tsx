@@ -45,9 +45,10 @@ function latLonToVector3(lat: number, lon: number, radius: number, biome?: strin
   return new THREE.Vector3(x, y, z)
 }
 
-function CellDots() {
+function CellDots({ onReady }: { onReady?: () => void }) {
   const { cells, populations, overlayMode, setSelectedCellId, selectedCellId, showCellInfo, toggleCellInfo } = useStore()
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const readyCalledRef = useRef(false)
   const { camera, raycaster, pointer } = useThree()
   const [zoomLevel, setZoomLevel] = useState(5)
 
@@ -143,6 +144,13 @@ function CellDots() {
 
   useFrame(() => {
     if (!meshRef.current) return
+    
+    // Signal ready after first successful render
+    if (!readyCalledRef.current && cells.length > 0 && onReady) {
+      readyCalledRef.current = true
+      // Use setTimeout to ensure render is complete
+      setTimeout(() => onReady(), 100)
+    }
 
     const dummy = new THREE.Object3D()
     positions.forEach((pos, i) => {
@@ -428,7 +436,7 @@ function Atmosphere() {
   )
 }
 
-export function Globe() {
+export function Globe({ onReady }: { onReady?: () => void }) {
   return (
     <div className="w-full h-full pointer-events-auto">
       <Canvas
@@ -451,7 +459,7 @@ export function Globe() {
       
       <Planet />
       <Atmosphere />
-      <CellDots />
+      <CellDots onReady={onReady} />
       
       <OrbitControls
         enablePan={false}

@@ -38,6 +38,8 @@ export function GamePage() {
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [showSpaceTravel, setShowSpaceTravel] = useState(true)
   const [worldName, setWorldName] = useState('Unknown World')
+  const [dataLoaded, setDataLoaded] = useState(false)
+  const [globeReady, setGlobeReady] = useState(false)
   const { connect, disconnect } = useSocket()
 
   useEffect(() => {
@@ -72,11 +74,12 @@ export function GamePage() {
           setPopulations(populations)
           setCivilizations(civilizations)
           setLoadingProgress(100)
+          setDataLoaded(true)
         }
       } catch (error) {
         console.error('Failed to load world data:', error)
-      } finally {
-        setTimeout(() => setLoading(false), 300)
+        setLoadingProgress(100)
+        setDataLoaded(true)
       }
     }
 
@@ -92,18 +95,22 @@ export function GamePage() {
   }, [token, connect, disconnect])
 
   // Show space travel animation during loading
-  if (showSpaceTravel && loading) {
+  if (showSpaceTravel) {
     return (
       <SpaceTravel 
         worldName={worldName}
         progress={loadingProgress}
-        onComplete={() => setShowSpaceTravel(false)}
+        ready={globeReady}
+        onComplete={() => {
+          setShowSpaceTravel(false)
+          setLoading(false)
+        }}
       />
     )
   }
   
   // Fallback loading screen if animation completes but still loading
-  if (loading) {
+  if (loading || !dataLoaded) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-space-900">
         <div className="text-center max-w-md w-full px-8">
@@ -130,7 +137,7 @@ export function GamePage() {
 
       {/* 3D Globe - Main View */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <Globe />
+        <Globe onReady={() => setGlobeReady(true)} />
       </div>
 
       {/* Orbiting Players Visualization */}

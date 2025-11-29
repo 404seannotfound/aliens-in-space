@@ -5,6 +5,7 @@ import * as THREE from 'three'
 interface SpaceTravelProps {
   worldName: string
   progress: number
+  ready: boolean // Signal that globe is ready to display
   onComplete: () => void
 }
 
@@ -173,12 +174,12 @@ function PlanetZoom({ show }: { show: boolean }) {
   )
 }
 
-export function SpaceTravel({ worldName, progress, onComplete }: SpaceTravelProps) {
+export function SpaceTravel({ worldName, progress, ready, onComplete }: SpaceTravelProps) {
   const [phase, setPhase] = useState<'wormhole' | 'planet' | 'complete'>('wormhole')
   
   useEffect(() => {
-    // Keep wormhole until 100% complete
-    if (progress >= 100 && phase === 'wormhole') {
+    // Keep wormhole until data is loaded AND globe is ready
+    if (progress >= 100 && ready && phase === 'wormhole') {
       setPhase('planet')
     }
     
@@ -189,7 +190,7 @@ export function SpaceTravel({ worldName, progress, onComplete }: SpaceTravelProp
         onComplete()
       }, 2000) // 2 seconds for planet zoom
     }
-  }, [progress, phase, onComplete])
+  }, [progress, ready, phase, onComplete])
   
   return (
     <div className="fixed inset-0 z-50 bg-black">
@@ -212,7 +213,7 @@ export function SpaceTravel({ worldName, progress, onComplete }: SpaceTravelProp
           
           {phase === 'wormhole' && (
             <p className="text-xl text-cyan-400">
-              Traveling through hyperspace...
+              {progress < 100 ? 'Loading world data...' : 'Rendering globe...'}
             </p>
           )}
           
