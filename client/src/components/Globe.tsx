@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import * as THREE from 'three'
@@ -30,6 +30,13 @@ function CellDots() {
   const { cells, populations, overlayMode, setSelectedCellId, selectedCellId, showCellInfo, toggleCellInfo } = useStore()
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const { camera, raycaster, pointer } = useThree()
+  const [zoomLevel, setZoomLevel] = useState(5)
+
+  // Track camera distance for LOD
+  useFrame(() => {
+    const dist = camera.position.length()
+    setZoomLevel(dist)
+  })
 
   const { positions, colors, scales } = useMemo(() => {
     const positions: THREE.Vector3[] = []
@@ -104,12 +111,16 @@ function CellDots() {
       }
 
       colors.push(color)
+      
+      // Scale cells based on zoom level - larger when zoomed in
+      const zoomScale = Math.max(0.5, Math.min(2, (6 - zoomLevel) / 2))
       const baseScale = pop && pop.population_size > 0 ? 0.04 + Math.min(0.06, pop.population_size / 50000) : 0.03
-      scales.push(isSelected ? baseScale * 1.5 : baseScale)
+      const finalScale = baseScale * zoomScale
+      scales.push(isSelected ? finalScale * 1.5 : finalScale)
     })
 
     return { positions, colors, scales }
-  }, [cells, populations, overlayMode, selectedCellId])
+  }, [cells, populations, overlayMode, selectedCellId, zoomLevel])
 
   useFrame(() => {
     if (!meshRef.current) return
