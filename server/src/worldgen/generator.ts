@@ -196,6 +196,7 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
     `, [worldId, civNames[i], civColors[i]]);
     
     const civId = civResult.rows[0].id;
+    const popSize = 100 + Math.floor(Math.random() * 200);
     
     // Create initial population
     await db.query(`
@@ -204,7 +205,9 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
         tech_level, prosperity, stability
       )
       VALUES ($1, $2, $3, 0, 50, 50)
-    `, [cell.id, civId, 100 + Math.floor(Math.random() * 200)]);
+    `, [cell.id, civId, popSize]);
+    
+    console.log(`  ✓ ${civNames[i]} (${popSize} people) at cell ${cell.id} (${cell.biome}, ${cell.temperature}°C)`);
   }
   
   console.log(`✅ Seeded ${suitableCells.rows.length} civilizations`);
