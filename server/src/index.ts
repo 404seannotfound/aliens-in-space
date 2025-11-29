@@ -10,7 +10,6 @@ import { experimentRouter } from './routes/experiments.js';
 import { chatRouter } from './routes/chat.js';
 import { adminRouter } from './routes/admin.js';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { setupSocketHandlers } from './sockets/index.js';
 import { SimulationEngine } from './simulation/engine.js';
 import { authenticateToken } from './middleware/auth.js';
@@ -42,16 +41,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Static files setup
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Static files setup - use process.cwd() since Render runs from project root
+const projectRoot = process.cwd();
 
 // Serve admin page from server's public folder
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(projectRoot, 'server/public')));
 
 // Serve client build in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../client/dist')));
+  app.use(express.static(path.join(projectRoot, 'client/dist')));
 }
 
 // Routes
@@ -68,7 +66,7 @@ if (process.env.NODE_ENV === 'production') {
     if (req.path.startsWith('/api') || req.path.startsWith('/socket.io') || req.path.includes('.')) {
       return next();
     }
-    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+    res.sendFile(path.join(projectRoot, 'client/dist/index.html'));
   });
 }
 

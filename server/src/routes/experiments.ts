@@ -93,7 +93,7 @@ experimentRouter.post('/submit', async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Invalid experiment category' });
     }
 
-    const expType = categoryTypes[type as keyof typeof categoryTypes];
+    const expType = categoryTypes[type as keyof typeof categoryTypes] as { cost: number; cooldown: number } | undefined;
     if (!expType) {
       return res.status(400).json({ error: 'Invalid experiment type' });
     }
