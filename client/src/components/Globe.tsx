@@ -286,6 +286,9 @@ function Planet() {
     if (meshRef.current) {
       meshRef.current.rotation.y += delta * 0.02
     }
+    if (wireframeRef.current) {
+      wireframeRef.current.rotation.y += delta * 0.02
+    }
   })
 
   return (
@@ -338,8 +341,8 @@ function Atmosphere() {
   
   useFrame((_, delta) => {
     if (cloudRef.current) {
-      cloudRef.current.rotation.y += delta * 0.05
-      cloudRef.current.rotation.x += delta * 0.01
+      cloudRef.current.rotation.y += delta * 0.02
+      cloudRef.current.rotation.x += delta * 0.005
     }
   })
 
