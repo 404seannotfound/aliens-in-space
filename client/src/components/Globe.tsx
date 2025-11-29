@@ -171,6 +171,7 @@ function CellDots() {
 function Planet() {
   const { cells } = useStore()
   const meshRef = useRef<THREE.Mesh>(null)
+  const wireframeRef = useRef<THREE.Mesh>(null)
   const textureRef = useRef<THREE.CanvasTexture | null>(null)
 
   // Create Earth-like texture with realistic continents and biomes
@@ -288,16 +289,32 @@ function Planet() {
   })
 
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[2, 128, 128]} />
-      <meshStandardMaterial
-        map={biomeTexture}
-        displacementMap={displacementMap}
-        displacementScale={0.15}
-        roughness={0.8}
-        metalness={0.2}
-      />
-    </mesh>
+    <>
+      {/* Wireframe base - always visible */}
+      <mesh ref={wireframeRef}>
+        <sphereGeometry args={[2, 32, 32]} />
+        <meshBasicMaterial
+          color="#1a1a3a"
+          wireframe={!biomeTexture}
+          opacity={biomeTexture ? 0 : 0.3}
+          transparent
+        />
+      </mesh>
+      
+      {/* Textured planet - loads after cells are ready */}
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[2, 128, 128]} />
+        <meshStandardMaterial
+          map={biomeTexture}
+          displacementMap={displacementMap}
+          displacementScale={0.15}
+          roughness={0.8}
+          metalness={0.2}
+          opacity={biomeTexture ? 1 : 0}
+          transparent
+        />
+      </mesh>
+    </>
   )
 }
 
