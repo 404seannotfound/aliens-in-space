@@ -426,9 +426,15 @@
         
         if (data.success) {
           log(`✅ World generated! ${data.stats.cellCount} cells created`, 'success');
-          log(`Biomes: ${Object.entries(data.stats.biomeDistribution).map(([k,v]) => `${k}=${v}`).join(', ')}`, 'info');
+          log(`Seed: ${data.stats.seed}`, 'info');
+          log(`🏛️ Civilizations: ${data.stats.civilizationsSeeded} seeded`, 'success');
+          log(`👥 Populations: ${data.stats.populationsCreated} created`, 'success');
+          log(`Biomes: ${Object.entries(data.stats.biomeDistribution).map(([k,v]) => `${k}:${v}`).join(', ')}`, 'info');
         } else {
           log(`❌ Generation failed: ${data.error}`, 'error');
+          if (data.details) {
+            log(`Details: ${data.details}`, 'error');
+          }
         }
       } catch (err) {
         log(`❌ Generation error: ${err.message}`, 'error');

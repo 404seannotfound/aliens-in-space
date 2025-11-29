@@ -212,10 +212,20 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
   
   console.log(`✅ Seeded ${suitableCells.rows.length} civilizations`);
   
+  // Verify populations were created
+  const popCheck = await db.query(`
+    SELECT COUNT(*) as count FROM populations p
+    JOIN cells c ON p.cell_id = c.id
+    WHERE c.world_id = $1
+  `, [worldId]);
+  
+  console.log(`📊 Population verification: ${popCheck.rows[0].count} populations in database`);
+  
   return {
     cellCount: cells.length,
     seed,
     civilizationsSeeded: suitableCells.rows.length,
+    populationsCreated: parseInt(popCheck.rows[0].count),
     biomeDistribution: cells.reduce((acc, cell) => {
       acc[cell.biome] = (acc[cell.biome] || 0) + 1;
       return acc;
