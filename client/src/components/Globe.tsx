@@ -168,14 +168,19 @@ function CellDots({ onReady }: { onReady?: () => void }) {
   })
 
   const handleClick = () => {
+    console.log('🖱️ Globe clicked!')
     raycaster.setFromCamera(pointer, camera)
     const intersects = raycaster.intersectObject(meshRef.current!, false)
     
+    console.log('Intersects:', intersects.length, 'cells:', cells.length)
+    
     if (intersects.length > 0) {
       const instanceId = intersects[0].instanceId
+      console.log('Instance ID:', instanceId)
+      
       if (instanceId !== undefined && cells[instanceId]) {
         const clickedCell = cells[instanceId]
-        console.log('Cell clicked:', { 
+        console.log('✅ Cell clicked:', { 
           instanceId, 
           cellId: clickedCell.id, 
           biome: clickedCell.biome,
@@ -183,11 +188,18 @@ function CellDots({ onReady }: { onReady?: () => void }) {
           lon: clickedCell.lon 
         })
         setSelectedCellId(clickedCell.id)
+        console.log('Selected cell ID set to:', clickedCell.id)
+        
         // Auto-open cell info panel if not already open
         if (!showCellInfo) {
+          console.log('Opening cell info panel')
           toggleCellInfo()
         }
+      } else {
+        console.log('❌ No cell found for instanceId:', instanceId)
       }
+    } else {
+      console.log('❌ No intersections found')
     }
   }
 
@@ -197,13 +209,16 @@ function CellDots({ onReady }: { onReady?: () => void }) {
       args={[undefined, undefined, cells.length]}
       onClick={handleClick}
       frustumCulled={false}
+      renderOrder={1}
     >
-      <sphereGeometry args={[1, 8, 8]} />
-      <meshBasicMaterial 
-        transparent 
-        opacity={0.7}
+      <sphereGeometry args={[0.05, 8, 8]} />
+      <meshBasicMaterial
+        vertexColors
+        transparent
+        opacity={0.9}
         side={THREE.DoubleSide}
-        depthWrite={false}
+        depthTest={true}
+        depthWrite={true}
       />
     </instancedMesh>
   )

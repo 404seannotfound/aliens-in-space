@@ -14,11 +14,22 @@ export function CellInfoPanel() {
   const population = populations.find(p => p.cell_id === selectedCellId)
 
   // Debug logging
-  console.log('CellInfoPanel:', { 
+  console.log('CellInfoPanel render:', { 
     selectedCellId, 
-    cellsCount: cells.length, 
-    cell: cell ? { id: cell.id, lat: cell.lat, lon: cell.lon, biome: cell.biome } : null,
-    population: population ? { name: population.civilization_name, size: population.population_size } : null
+    cellsCount: cells.length,
+    populationsCount: populations.length,
+    cell: cell ? { 
+      id: cell.id, 
+      lat: cell.lat, 
+      lon: cell.lon, 
+      biome: cell.biome,
+      latType: typeof cell.lat,
+      lonType: typeof cell.lon
+    } : 'NOT FOUND',
+    population: population ? { 
+      name: population.civilization_name, 
+      size: population.population_size 
+    } : 'NOT FOUND'
   })
 
   return (
@@ -33,7 +44,7 @@ export function CellInfoPanel() {
         </button>
       </div>
 
-      {!cell || typeof cell.lat !== 'number' || typeof cell.lon !== 'number' ? (
+      {!cell ? (
         <p className="text-gray-400 text-sm text-center py-4">
           Click a cell on the globe to see details
         </p>
