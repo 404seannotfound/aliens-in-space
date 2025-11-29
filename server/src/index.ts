@@ -20,10 +20,13 @@ const app = express();
 const httpServer = createServer(app);
 const io = new SocketServer(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: process.env.NODE_ENV === 'production' 
+      ? ['https://aliens-in-space.onrender.com', 'https://kradel.onrender.com']
+      : (process.env.CLIENT_URL || 'http://localhost:5173'),
     methods: ['GET', 'POST'],
     credentials: true
-  }
+  },
+  transports: ['websocket', 'polling']
 });
 
 // Middleware
