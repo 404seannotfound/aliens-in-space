@@ -28,10 +28,13 @@ const io = new SocketServer(httpServer, {
 });
 
 // Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? true 
+    : (process.env.CLIENT_URL || 'http://localhost:5173'),
   credentials: true
-}));
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check
@@ -39,10 +42,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Static files for admin page
+// Static files setup
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Serve admin page from server's public folder
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Serve client build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../client/dist')));
+}
 
 // Routes
 app.use('/api/auth', authRouter);
@@ -50,6 +60,17 @@ app.use('/api/world', authenticateToken, worldRouter);
 app.use('/api/experiments', authenticateToken, experimentRouter);
 app.use('/api/chat', authenticateToken, chatRouter);
 app.use('/api/admin', adminRouter); // No auth for db init page
+
+// SPA catch-all route - serve index.html for client-side routing
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res, next) => {
+    // Skip API routes and file requests
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io') || req.path.includes('.')) {
+      return next();
+    }
+    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+  });
+}
 
 // Socket.io setup
 setupSocketHandlers(io);
