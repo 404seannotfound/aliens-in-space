@@ -1,0 +1,50 @@
+databases:
+  - name: aliens-db
+    databaseName: aliens_in_space
+    user: aliens
+    plan: free
+    region: oregon
+
+services:
+  # Web service - serves API and frontend
+  - type: web
+    name: aliens-in-space
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aliens-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://aliens-in-space.onrender.com
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # Background worker - runs the simulation
+  - type: worker
+    name: aliens-simulation
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aliens-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: SIMULATION_ONLY
+        value: "true"
+    autoDeploy: true
