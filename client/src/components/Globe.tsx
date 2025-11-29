@@ -163,13 +163,51 @@ function CellDots() {
       onClick={handleClick}
     >
       <sphereGeometry args={[1, 8, 8]} />
-      <meshBasicMaterial />
+      <meshBasicMaterial transparent opacity={0.7} />
     </instancedMesh>
   )
 }
 
 function Planet() {
+  const { cells } = useStore()
   const meshRef = useRef<THREE.Mesh>(null)
+  const textureRef = useRef<THREE.CanvasTexture | null>(null)
+
+  // Create biome texture from cell data
+  const biomeTexture = useMemo(() => {
+    if (cells.length === 0) return null
+
+    // Create a canvas to paint biomes
+    const canvas = document.createElement('canvas')
+    const size = 512
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+
+    // Fill with dark space color
+    ctx.fillStyle = '#0a0a1a'
+    ctx.fillRect(0, 0, size, size)
+
+    // Draw each cell as a colored region
+    cells.forEach(cell => {
+      const color = BIOME_COLORS[cell.biome] || '#444444'
+      
+      // Convert lat/lon to texture coordinates (equirectangular projection)
+      const x = ((cell.lon + 180) / 360) * size
+      const y = ((90 - cell.lat) / 180) * size
+      
+      // Draw a circle for each cell
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.arc(x, y, 8, 0, Math.PI * 2)
+      ctx.fill()
+    })
+
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.needsUpdate = true
+    return texture
+  }, [cells])
 
   useFrame((_, delta) => {
     if (meshRef.current) {
@@ -181,7 +219,7 @@ function Planet() {
     <mesh ref={meshRef}>
       <sphereGeometry args={[2, 64, 64]} />
       <meshStandardMaterial
-        color="#1a1a2e"
+        map={biomeTexture}
         roughness={0.8}
         metalness={0.2}
       />
