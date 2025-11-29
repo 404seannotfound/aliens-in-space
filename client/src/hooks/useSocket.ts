@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useStore } from '../store/useStore'
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001'
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || window.location.origin
 
 export function useSocket() {
   const socketRef = useRef<Socket | null>(null)

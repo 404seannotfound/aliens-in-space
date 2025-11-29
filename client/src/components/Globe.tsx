@@ -27,7 +27,7 @@ function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector
 }
 
 function CellDots() {
-  const { cells, populations, overlayMode, setSelectedCellId } = useStore()
+  const { cells, populations, overlayMode, setSelectedCellId, selectedCellId } = useStore()
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const { camera, raycaster, pointer } = useThree()
 
@@ -43,6 +43,7 @@ function CellDots() {
       positions.push(pos)
 
       const pop = populationMap.get(cell.id)
+      const isSelected = cell.id === selectedCellId
       let color: THREE.Color
 
       switch (overlayMode) {
@@ -97,12 +98,18 @@ function CellDots() {
           color = new THREE.Color(BIOME_COLORS[cell.biome] || '#444444')
       }
 
+      // Highlight selected cell
+      if (isSelected) {
+        color = new THREE.Color('#ffffff')
+      }
+
       colors.push(color)
-      scales.push(pop && pop.population_size > 0 ? 0.04 + Math.min(0.06, pop.population_size / 50000) : 0.03)
+      const baseScale = pop && pop.population_size > 0 ? 0.04 + Math.min(0.06, pop.population_size / 50000) : 0.03
+      scales.push(isSelected ? baseScale * 1.5 : baseScale)
     })
 
     return { positions, colors, scales }
-  }, [cells, populations, overlayMode])
+  }, [cells, populations, overlayMode, selectedCellId])
 
   useFrame(() => {
     if (!meshRef.current) return

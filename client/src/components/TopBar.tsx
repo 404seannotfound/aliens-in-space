@@ -20,7 +20,7 @@ export function TopBar() {
           
           <div className="flex items-center gap-2 px-4 py-2 bg-space-800/80 backdrop-blur rounded-xl">
             <Calendar className="w-4 h-4 text-alien-purple" />
-            <span className="text-white">Year {worldState.currentYear}</span>
+            <span className="text-white">Day {(worldState.currentTick / 2).toFixed(1)}</span>
           </div>
         </div>
 

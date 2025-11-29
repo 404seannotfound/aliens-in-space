@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
+import { useSocket } from '../hooks/useSocket'
 import { Globe } from '../components/Globe'
 import { ChatPanel } from '../components/ChatPanel'
 import { ExperimentsPanel } from '../components/ExperimentsPanel'
@@ -33,6 +34,7 @@ export function GamePage() {
   } = useStore()
 
   const [loading, setLoading] = useState(true)
+  const { connect, disconnect } = useSocket()
 
   useEffect(() => {
     async function loadWorldData() {
@@ -63,6 +65,14 @@ export function GamePage() {
 
     loadWorldData()
   }, [token, setCells, setPopulations, setCivilizations])
+
+  // Connect to socket for real-time updates
+  useEffect(() => {
+    if (token) {
+      connect(token)
+      return () => disconnect()
+    }
+  }, [token, connect, disconnect])
 
   if (loading) {
     return (
