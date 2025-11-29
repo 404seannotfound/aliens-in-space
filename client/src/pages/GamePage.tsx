@@ -7,6 +7,7 @@ import { ExperimentsPanel } from '../components/ExperimentsPanel'
 import { CellInfoPanel } from '../components/CellInfoPanel'
 import { TopBar } from '../components/TopBar'
 import { OnlinePlayersOrbit } from '../components/OnlinePlayersOrbit'
+import { SpaceTravel } from '../components/SpaceTravel'
 import { 
   MessageSquare, 
   FlaskConical, 
@@ -35,12 +36,22 @@ export function GamePage() {
 
   const [loading, setLoading] = useState(true)
   const [loadingProgress, setLoadingProgress] = useState(0)
+  const [showSpaceTravel, setShowSpaceTravel] = useState(true)
+  const [worldName, setWorldName] = useState('Unknown World')
   const { connect, disconnect } = useSocket()
 
   useEffect(() => {
     async function loadWorldData() {
       try {
         const headers = { 'Authorization': `Bearer ${token}` }
+        
+        // Get world info first
+        setLoadingProgress(5)
+        const worldRes = await fetch(`${API_URL}/api/world/current`, { headers })
+        if (worldRes.ok) {
+          const world = await worldRes.json()
+          setWorldName(world.name || 'Genesis')
+        }
         
         setLoadingProgress(10)
         const cellsRes = await fetch(`${API_URL}/api/world/cells`, { headers })
@@ -80,12 +91,23 @@ export function GamePage() {
     }
   }, [token, connect, disconnect])
 
+  // Show space travel animation during loading
+  if (showSpaceTravel && loading) {
+    return (
+      <SpaceTravel 
+        worldName={worldName}
+        onComplete={() => setShowSpaceTravel(false)}
+      />
+    )
+  }
+  
+  // Fallback loading screen if animation completes but still loading
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-space-900">
         <div className="text-center max-w-md w-full px-8">
           <div className="inline-block w-16 h-16 border-4 border-alien-purple/30 border-t-alien-purple rounded-full animate-spin mb-4" />
-          <p className="text-gray-400 mb-4">Loading the universe...</p>
+          <p className="text-gray-400 mb-4">Entering orbit...</p>
           
           {/* Progress Bar */}
           <div className="w-full bg-space-700 rounded-full h-2 overflow-hidden">
