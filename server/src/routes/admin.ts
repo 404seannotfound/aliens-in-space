@@ -487,9 +487,19 @@ adminRouter.post('/generate-world', async (req: Request, res: Response) => {
       worldId = newWorld.rows[0].id;
     } else {
       worldId = worldResult.rows[0].id;
-      // Reset world
+      // Reset world - clear everything
       await db.query('UPDATE worlds SET current_tick = 0, current_year = 0 WHERE id = $1', [worldId]);
+      
+      // Delete populations first (foreign key constraint)
       await db.query('DELETE FROM populations WHERE cell_id IN (SELECT id FROM cells WHERE world_id = $1)', [worldId]);
+      
+      // Delete cells (this will cascade to any remaining data)
+      await db.query('DELETE FROM cells WHERE world_id = $1', [worldId]);
+      
+      // Delete civilizations
+      await db.query('DELETE FROM civilizations WHERE world_id = $1', [worldId]);
+      
+      console.log('🧹 Cleared existing world data');
     }
 
     // Generate world

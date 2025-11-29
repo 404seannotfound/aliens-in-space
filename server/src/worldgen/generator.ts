@@ -120,7 +120,7 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
       const biome = determineBiome(elevation, lat, moisture, params.avgTemperature);
       
       // Calculate cell properties
-      const temperature = params.avgTemperature - Math.abs(lat) * 0.6 + (Math.random() - 0.5) * 10;
+      const temperature = Math.round(params.avgTemperature - Math.abs(lat) * 0.6 + (Math.random() - 0.5) * 10);
       const foodCapacity = biome === 'ocean' ? 50 : 
                           biome === 'desert' ? 30 :
                           biome === 'arctic' ? 20 :
@@ -135,12 +135,10 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
       cells.push({
         x: Math.round(lon / cellSize),
         y: Math.round(lat / cellSize),
-        lat,
-        lon,
+        lat: Math.round(lat * 100) / 100,  // Round to 2 decimals
+        lon: Math.round(lon * 100) / 100,  // Round to 2 decimals
         biome,
         temperature,
-        moisture: moisture * 100,
-        elevation: elevation * 100,
         food_capacity: foodCapacity
       });
     }
@@ -169,9 +167,52 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
   
   console.log(`✅ World generation complete`);
   
+  // Seed some initial civilizations
+  console.log(`🌱 Seeding initial civilizations...`);
+  
+  // Find suitable starting cells (grassland, forest, or jungle with good temperature)
+  const suitableCells = await db.query(`
+    SELECT id, biome, temperature 
+    FROM cells 
+    WHERE world_id = $1 
+      AND biome IN ('grassland', 'forest', 'jungle')
+      AND temperature BETWEEN 10 AND 30
+      AND food_capacity > 60
+    ORDER BY RANDOM()
+    LIMIT 5
+  `, [worldId]);
+  
+  const civColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
+  const civNames = ['Terrans', 'Aquarians', 'Sylvans', 'Nomads', 'Highlanders'];
+  
+  for (let i = 0; i < suitableCells.rows.length; i++) {
+    const cell = suitableCells.rows[i];
+    
+    // Create civilization
+    const civResult = await db.query(`
+      INSERT INTO civilizations (world_id, name, color, ideology, tech_level)
+      VALUES ($1, $2, $3, 'balanced', 0)
+      RETURNING id
+    `, [worldId, civNames[i], civColors[i]]);
+    
+    const civId = civResult.rows[0].id;
+    
+    // Create initial population
+    await db.query(`
+      INSERT INTO populations (
+        cell_id, civilization_id, population_size, 
+        tech_level, prosperity, stability
+      )
+      VALUES ($1, $2, $3, 0, 50, 50)
+    `, [cell.id, civId, 100 + Math.floor(Math.random() * 200)]);
+  }
+  
+  console.log(`✅ Seeded ${suitableCells.rows.length} civilizations`);
+  
   return {
     cellCount: cells.length,
     seed,
+    civilizationsSeeded: suitableCells.rows.length,
     biomeDistribution: cells.reduce((acc, cell) => {
       acc[cell.biome] = (acc[cell.biome] || 0) + 1;
       return acc;
