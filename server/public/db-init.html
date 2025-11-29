@@ -258,6 +258,30 @@
       document.getElementById('log').innerHTML = '<div class="text-gray-500">Log cleared...</div>';
     }
 
+    // Connect to debug stream
+    function connectDebugStream() {
+      const eventSource = new EventSource(`${API_BASE}/api/admin/debug-stream`);
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          log(data.message, data.level);
+        } catch (err) {
+          console.error('Failed to parse debug message:', err);
+        }
+      };
+      
+      eventSource.onerror = (err) => {
+        console.error('Debug stream error:', err);
+        log('⚠️ Debug stream disconnected, retrying...', 'warning');
+        eventSource.close();
+        // Retry after 5 seconds
+        setTimeout(connectDebugStream, 5000);
+      };
+      
+      log('🔌 Connected to debug stream', 'success');
+    }
+
     function setButtonLoading(btnId, loading) {
       const btn = document.getElementById(btnId);
       btn.disabled = loading;
@@ -493,10 +517,10 @@
       loadMetrics();
     }
 
-    // Load metrics on page load
+    // Load metrics on page load and connect debug stream
     loadMetrics();
-    // Auto-refresh every 30 seconds
-    setInterval(loadMetrics, 30000);
+    setInterval(loadMetrics, 5000);
+    connectDebugStream();
   </script>
 </body>
 </html>

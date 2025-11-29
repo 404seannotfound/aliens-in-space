@@ -1,4 +1,5 @@
 import { db } from '../db/connection.js';
+import { debugLog } from '../utils/debugLogger.js';
 
 export interface WorldGenParams {
   continents: number;        // 1-7
@@ -84,7 +85,7 @@ function determineBiome(
 export async function generateWorld(params: WorldGenParams, worldId: string) {
   const seed = params.seed || Math.floor(Math.random() * 1000000);
   
-  console.log(`🌍 Generating world with params:`, params);
+  debugLog(`🌍 Generating world with params: ${JSON.stringify(params)}`, 'info');
   
   // Generate grid of cells (72x36 = 2592 cells, 5° resolution)
   const cells = [];
@@ -144,7 +145,7 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
     }
   }
   
-  console.log(`📊 Generated ${cells.length} cells`);
+  debugLog(`📊 Generated ${cells.length} cells`, 'success');
   
   // Insert cells into database
   await db.query('DELETE FROM cells WHERE world_id = $1', [worldId]);
@@ -165,10 +166,10 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
     ]);
   }
   
-  console.log(`✅ World generation complete`);
+  debugLog(`✅ World generation complete`, 'success');
   
   // Seed some initial civilizations
-  console.log(`🌱 Seeding initial civilizations...`);
+  debugLog(`🌱 Seeding initial civilizations...`, 'info');
   
   // Find suitable starting cells (grassland, forest, or jungle with good temperature)
   const suitableCells = await db.query(`
@@ -207,10 +208,10 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
       VALUES ($1, $2, $3, 0, 50, 50)
     `, [cell.id, civId, popSize]);
     
-    console.log(`  ✓ ${civNames[i]} (${popSize} people) at cell ${cell.id} (${cell.biome}, ${cell.temperature}°C)`);
+    debugLog(`  ✓ ${civNames[i]} (${popSize} people) at cell ${cell.id} (${cell.biome}, ${cell.temperature}°C)`, 'success');
   }
   
-  console.log(`✅ Seeded ${suitableCells.rows.length} civilizations`);
+  debugLog(`✅ Seeded ${suitableCells.rows.length} civilizations`, 'success');
   
   // Verify populations were created
   const popCheck = await db.query(`
@@ -219,7 +220,7 @@ export async function generateWorld(params: WorldGenParams, worldId: string) {
     WHERE c.world_id = $1
   `, [worldId]);
   
-  console.log(`📊 Population verification: ${popCheck.rows[0].count} populations in database`);
+  debugLog(`📊 Population verification: ${popCheck.rows[0].count} populations in database`, 'info');
   
   return {
     cellCount: cells.length,

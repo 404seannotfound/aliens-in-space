@@ -96,6 +96,7 @@ export function GamePage() {
     return (
       <SpaceTravel 
         worldName={worldName}
+        progress={loadingProgress}
         onComplete={() => setShowSpaceTravel(false)}
       />
     )

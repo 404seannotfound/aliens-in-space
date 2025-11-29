@@ -2,8 +2,34 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db/connection.js';
 import { v4 as uuidv4 } from 'uuid';
 import { generateWorld, WorldGenParams } from '../worldgen/generator.js';
+import { addDebugClient } from '../utils/debugLogger.js';
 
 export const adminRouter = Router();
+
+// SSE endpoint for debug logs
+adminRouter.get('/debug-stream', (req: Request, res: Response) => {
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  // Send initial connection message
+  res.write(`data: ${JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message: '🔌 Debug stream connected' })}\n\n`);
+  
+  // Add this client to the debug clients list
+  addDebugClient(res);
+  
+  // Keep connection alive with periodic heartbeat
+  const heartbeat = setInterval(() => {
+    res.write(': heartbeat\n\n');
+  }, 30000);
+  
+  // Cleanup on close
+  req.on('close', () => {
+    clearInterval(heartbeat);
+  });
+});
 
 // Get database metrics
 adminRouter.get('/metrics', async (req: Request, res: Response) => {
