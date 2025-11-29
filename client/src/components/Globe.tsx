@@ -344,8 +344,9 @@ function Atmosphere() {
   })
 
   // Lighten and darken the base color for variety
-  const lighterCloud = new THREE.Color(cloudColor).offsetHSL(0, 0, 0.1).getHexString()
-  const darkerCloud = new THREE.Color(cloudColor).offsetHSL(0, 0, -0.1).getHexString()
+  const baseColor = new THREE.Color(cloudColor)
+  const lighterCloud = baseColor.clone().offsetHSL(0, 0, 0.1)
+  const darkerCloud = baseColor.clone().offsetHSL(0, 0, -0.1)
 
   return (
     <>
@@ -363,7 +364,7 @@ function Atmosphere() {
       <mesh rotation={[0, Math.PI / 3, 0]}>
         <sphereGeometry args={[2.3, 64, 64]} />
         <meshBasicMaterial
-          color={`#${lighterCloud}`}
+          color={lighterCloud}
           transparent
           opacity={0.1}
           side={THREE.DoubleSide}
@@ -373,7 +374,7 @@ function Atmosphere() {
       <mesh rotation={[0, Math.PI / 1.5, 0]}>
         <sphereGeometry args={[2.35, 64, 64]} />
         <meshBasicMaterial
-          color={`#${darkerCloud}`}
+          color={darkerCloud}
           transparent
           opacity={0.08}
           side={THREE.DoubleSide}
